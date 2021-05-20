@@ -1,0 +1,178 @@
+### CODEBUILD TERRAFORM IAM ROLE ###
+resource "aws_iam_role" "codebuild_terraform" {
+  name               = "${var.name}-build"
+  count              = var.create ? 1 : 0
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "codebuild.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+  tags               = var.input_tags
+}
+
+resource "aws_iam_role_policy" "codebuild_policy_terraform" {
+  name   = "${var.name}-build"
+  count  = var.create ? 1 : 0
+  role   = join("", aws_iam_role.codebuild_terraform.*.id)
+  policy = var.codebuild_iam_policy
+}
+
+
+
+### CODEPIPELINE TERRAFORM IAM ROLE ###
+resource "aws_iam_role" "codepipeline_role_terraform" {
+  name               = "${var.name}-codepipeline"
+  count              = var.create ? 1 : 0
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "codepipeline.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "codepipeline_policy_terraform" {
+  name   = "${var.name}-codepipeline-policy"
+  role   = join("", aws_iam_role.codepipeline_role_terraform.*.id)
+  count  = var.create ? 1 : 0
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect":"Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketVersioning",
+        "s3:PutObject",
+        "s3:PutObjectAcl"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.pipeline_resources_bucket.arn}",
+        "${aws_s3_bucket.pipeline_resources_bucket.arn}/*"
+      ]
+    },
+    {
+      "Effect":"Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketVersioning"
+      ],
+      "Resource": [
+        "${var.cp_resource_bucket_arn}",
+        "${var.cp_resource_bucket_arn}/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codebuild:BatchGetBuilds",
+        "codebuild:StartBuild"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ],
+      "Resource": "${data.aws_kms_alias.s3.arn}"
+    },
+    {
+      "Action": [
+        "codedeploy:CreateDeployment",
+        "codedeploy:GetApplication",
+        "codedeploy:GetApplicationRevision",
+        "codedeploy:GetDeployment",
+        "codedeploy:GetDeploymentConfig",
+        "codedeploy:RegisterApplicationRevision"
+      ],
+        "Resource": "*",
+        "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+//{
+//  "Version": "2012-10-17",
+//  "Statement": [
+//    {
+//      "Effect":"Allow",
+//      "Action": [
+//        "s3:GetObject",
+//        "s3:GetObjectVersion",
+//        "s3:GetBucketVersioning",
+//        "s3:PutObject",
+//        "s3:PutObjectAcl"
+//      ],
+//      "Resource": [
+//        "${aws_s3_bucket.pipeline_resources_bucket.arn}",
+//        "${aws_s3_bucket.pipeline_resources_bucket.arn}/*"
+//      ]
+//    },
+//    {
+//      "Effect": "Allow",
+//      "Action": [
+//        "codebuild:BatchGetBuilds",
+//        "codebuild:StartBuild"
+//      ],
+//      "Resource": "*"
+//    },
+//    {
+//      "Effect": "Allow",
+//      "Action": [
+//        "codestar-connections:UseConnection",
+//        "codestar-connections:PassConnection"
+//      ],
+//      "Resource": "${var.cp_source_codestar_connection_arn}"
+//    },
+//    {
+//      "Effect": "Allow",
+//      "Action": [
+//        "kms:Encrypt",
+//        "kms:Decrypt",
+//        "kms:ReEncrypt*",
+//        "kms:GenerateDataKey*",
+//        "kms:DescribeKey"
+//      ],
+//      "Resource": "${data.aws_kms_alias.s3.arn}"
+//    },
+//    {
+//      "Action": [
+//        "codedeploy:CreateDeployment",
+//        "codedeploy:GetApplication",
+//        "codedeploy:GetApplicationRevision",
+//        "codedeploy:GetDeployment",
+//        "codedeploy:GetDeploymentConfig",
+//        "codedeploy:RegisterApplicationRevision"
+//      ],
+//        "Resource": "*",
+//        "Effect": "Allow"
+//    }
+//  ]
+//}
