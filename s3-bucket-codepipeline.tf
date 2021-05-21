@@ -37,7 +37,7 @@ resource "aws_s3_bucket" "pipeline_resources_bucket" {
     }
   }
 
-  tags = merge(var.input_tags, {})
+  tags = merge(local.common_tags, {})
 }
 
 # this bucket is used for logging

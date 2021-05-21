@@ -63,7 +63,7 @@ artifacts:
 BUILDSPEC
   }
   tags = merge(
-    var.input_tags,
+    local.common_tags,
     {
       "Name" = "${var.name}-tf-plan"
     },
@@ -130,7 +130,7 @@ phases:
 BUILDSPEC
   }
   tags = merge(
-    var.input_tags,
+    local.common_tags,
     {
       "Name" = "${var.name}-tf-apply"
     },
@@ -231,7 +231,7 @@ BUILDSPEC
 //BUILDSPEC
 //  }
 //  tags = merge(
-//    var.input_tags,
+//    local.common_tags,
 //    {
 //      "Name" = "${var.name}-tf-validate"
 //    },
