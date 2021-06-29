@@ -1,4 +1,4 @@
-# iac-pipeline
+# terraform-iac-pipeline
 
 This repository lets you create a codepipeline and supporting codebuilds etc. for automatically deploying terraform code.
 
