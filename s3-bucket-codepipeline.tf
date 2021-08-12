@@ -1,6 +1,6 @@
 #this bucket is used to store config files, etc. which are used for processing.
 resource "aws_s3_bucket" "pipeline_resources_bucket" {
-  bucket = var.name
+  bucket = "${var.name}-pipeline-resources"
 
   versioning {
     enabled = true
