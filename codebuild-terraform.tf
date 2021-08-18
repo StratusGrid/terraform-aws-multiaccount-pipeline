@@ -190,7 +190,7 @@ BUILDSPEC
 //    type                = "GITHUB"
 //    git_clone_depth     = 1
 //    insecure_ssl        = false
-//    location            = "https://github.com/funi-main/funi-utils-infra.git"
+//    location            = ""
 //    report_build_status = true
 //    git_submodules_config {
 //      fetch_submodules = false
