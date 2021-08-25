@@ -137,9 +137,9 @@ BUILDSPEC
   )
 }
 
-//
+
 //resource "aws_codebuild_webhook" "terraform_validate" {
-//  count        = var.create ? 1 : 0
+//  count        = var.create && var.cp_source_repo != "" ? 1 : 0
 //  project_name = join("", aws_codebuild_project.terraform_validate.*.name)
 //
 //  filter_group {
@@ -173,6 +173,10 @@ BUILDSPEC
 //      value = var.cb_tf_version
 //    }
 //    environment_variable {
+//      name  = "TERRAFORM_ENVIRONMENT_NAME"
+//      value = var.cb_env_name
+//    }
+//    environment_variable {
 //      name  = "TF_CLI_ARGS"
 //      value = "-no-color"
 //    }
@@ -186,16 +190,19 @@ BUILDSPEC
 //    artifact_identifier = "plan_output"
 //  }
 //
-//  source {
-//    type                = "GITHUB"
-//    git_clone_depth     = 1
-//    insecure_ssl        = false
-//    location            = ""
-//    report_build_status = true
-//    git_submodules_config {
-//      fetch_submodules = false
-//    }
-//    buildspec = <<BUILDSPEC
+//  dynamic "source" {
+//    #for_each = [true]
+//    for_each = var.create && var.cp_source_repo != "" ? [true] : []
+//    content {
+//      type                = "GITHUB"
+//      git_clone_depth     = 1
+//      insecure_ssl        = false
+//      location            = "https://github.com/${var.cp_source_owner}/${var.cp_source_repo}"
+//      report_build_status = true
+//      git_submodules_config {
+//        fetch_submodules = false
+//      }
+//      buildspec = <<BUILDSPEC
 //version: 0.2
 //
 //phases:
@@ -229,7 +236,17 @@ BUILDSPEC
 //  files:
 //    - '**/*'
 //BUILDSPEC
+//    }
 //  }
+//
+//  //dynamic "source" {
+//  //  for_each = var.create && var.cp_resource_bucket_name != "" ? [true] : []
+//  //  content {
+//  //    type                = "S3"
+//  //    location            = "${var.cp_resource_bucket_name}"
+//  //  }
+//  //}
+//
 //  tags = merge(
 //    var.input_tags,
 //    {
@@ -237,4 +254,3 @@ BUILDSPEC
 //    },
 //  )
 //}
-
