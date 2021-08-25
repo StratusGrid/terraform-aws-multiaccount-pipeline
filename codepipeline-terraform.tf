@@ -23,39 +23,49 @@ resource "aws_codepipeline" "codepipeline_terraform" {
       "Name" = "${var.name}-cp-terraform"
     },
   )
-  stage {
-    # TODO: Dynamic to support for S3 and codestar
-    name = "Source"
 
-    action {
-      owner            = "AWS"
-      name             = "ArtifactsS3"
-      category         = "Source"
-      provider         = "S3"
-      version          = "1"
-      output_artifacts = ["source_output"]
-      configuration = {
-        PollForSourceChanges = "false"
-        S3Bucket    = var.cp_resource_bucket_name
-        S3ObjectKey = var.cp_resource_bucket_key_name
+  dynamic "stage" {
+    for_each = var.environment_names
+    content {
+      name = "Source"
+
+      dynamic "action" {
+        for_each = var.cp_resource_bucket_name != "" ? [true] : []
+        content {
+          owner            = "AWS"
+          name             = "ArtifactsS3"
+          category         = "Source"
+          provider         = "S3"
+          version          = "1"
+          output_artifacts = ["source_output"]
+          configuration = {
+            PollForSourceChanges = "false"
+            S3Bucket    = var.cp_resource_bucket_name
+            S3ObjectKey = var.cp_resource_bucket_key_name
+          }
+        }
+      }
+
+      dynamic "action" {
+        for_each = var.cp_source_repo != "" ? [true] : []
+        content {
+          name             = "Source"
+          category         = "Source"
+          owner            = "AWS"
+          provider         = "CodeStarSourceConnection"
+          version          = "1"
+          output_artifacts = ["source_output"]
+          namespace        = "SourceVariables"
+
+          configuration = {
+            BranchName           = var.cp_source_branch
+            FullRepositoryId     = "${var.cp_source_owner}/${var.cp_source_repo}"
+            ConnectionArn        = var.cp_source_codestar_connection_arn
+            OutputArtifactFormat = "CODE_ZIP"
+          }
+        }
       }
     }
-//    action {
-//      name             = "Source"
-//      category         = "Source"
-//      owner            = "AWS"
-//      provider         = "CodeStarSourceConnection"
-//      version          = "1"
-//      output_artifacts = ["source_output"]
-//      namespace        = "SourceVariables"
-//
-//      configuration = {
-//        BranchName           = var.cp_source_branch
-//        FullRepositoryId     = "${var.cp_source_owner}/${var.cp_source_repo}"
-//        ConnectionArn        = var.cp_source_codestar_connection_arn
-//        OutputArtifactFormat = "CODE_ZIP"
-//      }
-//    }
   }
 
   dynamic "stage" {
@@ -99,16 +109,33 @@ resource "aws_codepipeline" "codepipeline_terraform" {
       }
 
       dynamic "action" {
-        for_each = contains(var.cp_tf_manual_approval, stage.value) ? [true] : []
+        for_each = contains(var.cp_tf_manual_approval, stage.value) && var.cp_source_repo != "" ? [true] : []
         content {
           name     = "Approval"
           category = "Approval"
           owner    = "AWS"
           provider = "Manual"
-//          configuration = {
-//            CustomData         = "Please review the codebuild output and verify the changes. Commit ID: #{SourceVariables.CommitId}"
-//            ExternalEntityLink = "https://github.com/${var.cp_source_owner}/${var.cp_source_repo}/commit/#{SourceVariables.CommitId}"
-//          }
+          configuration = {
+            CustomData         = "Please review the codebuild output and verify the changes. Commit ID: #{SourceVariables.CommitId}"
+            ExternalEntityLink = "https://github.com/${var.cp_source_owner}/${var.cp_source_repo}/commit/#{SourceVariables.CommitId}"
+          }
+          input_artifacts  = []
+          output_artifacts = []
+          version          = "1"
+          run_order        = 2
+        }
+      }
+
+      dynamic "action" {
+        for_each = contains(var.cp_tf_manual_approval, stage.value) && var.cp_resource_bucket_name != "" ? [true] : []
+        content {
+          name     = "Approval"
+          category = "Approval"
+          owner    = "AWS"
+          provider = "Manual"
+          configuration = {
+            CustomData         = "Please review the codebuild output and verify the changes."
+          }
           input_artifacts  = []
           output_artifacts = []
           version          = "1"
