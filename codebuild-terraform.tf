@@ -138,23 +138,6 @@ BUILDSPEC
 }
 
 
-//resource "aws_codebuild_webhook" "terraform_validate" {
-//  count        = var.create && var.cp_source_repo != "" ? 1 : 0
-//  project_name = join("", aws_codebuild_project.terraform_validate.*.name)
-//
-//  filter_group {
-//    filter {
-//      type    = "EVENT"
-//      pattern = "PUSH"
-//    }
-//    filter {
-//      exclude_matched_pattern = true
-//      pattern                 = "^refs/heads/main"
-//      type                    = "HEAD_REF"
-//    }
-//  }
-//}
-//
 //resource "aws_codebuild_project" "terraform_validate" {
 //  name          = "${var.name}-tf-validate"
 //  count         = var.create ? 1 : 0
