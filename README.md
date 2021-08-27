@@ -2,6 +2,8 @@
 
 This repository creates various CodeSuite components for automatically deploying terraform code from an archive kept in an S3 bucket.
 
+The CodeStar Connection which is used for Github Oauth must be activated in the management console after creation; it will stay in the PENDING status until that is done. This is performed in the "Developer Tools" section (along with CodeBuild and CodeDeploy), in the "Settings" sub-menu.
+
 NOTE IF USING GITHUB WEBHOOKS: Due to a bug in Terraform, we must ignore_changes on the github configuration to prevent it attempting to update oauthtoken every apply. If this ever needs to be updated, this can be destroying the pipeline and letting it be remade, or by removing the the following code block from te codepipeline-terraform.tf file:
 ```
   lifecycle {
