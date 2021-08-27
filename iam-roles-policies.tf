@@ -67,6 +67,20 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
     }
   }
 
+  dynamic "statement" {
+    for_each = var.cp_source_codestar_connection_arn != "" ? [true] : []
+    content {
+      sid = "CodeStarConnectionAccess"
+
+      actions = [
+        "codestar-connections:PassConnection",
+        "codestar-connections:UseConnection"
+      ]
+
+      resources = ["${var.cp_source_codestar_connection_arn}"]
+    }
+  }
+
   statement {
     sid = "PipelineBucketAccess"
 
