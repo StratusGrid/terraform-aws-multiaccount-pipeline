@@ -2,9 +2,6 @@ data "aws_kms_alias" "s3" {
   name = "alias/aws/s3"
 }
 resource "aws_codepipeline" "codepipeline_terraform" {
-  #lifecycle {
-  #  ignore_changes = [stage[0].action[0].configuration]
-  #}
   count    = var.create ? 1 : 0
   name     = "${var.name}-cp-terraform"
   role_arn = join("", aws_iam_role.codepipeline_role_terraform.*.arn)
