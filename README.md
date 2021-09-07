@@ -1,29 +1,23 @@
 # terraform-iac-pipeline
 
-This repository creates various CodeSuite components for automatically deploying terraform code from an archive kept in an S3 bucket.
+This repository creates various CodeSuite components for automatically deploying terraform code from a Github repository or an archive kept in an S3 bucket.
 
-The CodeStar Connection which is used for Github Oauth must be activated in the management console after creation; it will stay in the PENDING status until that is done. This is performed in the "Developer Tools" section (along with CodeBuild and CodeDeploy), in the "Settings" sub-menu.
+The CodeStar Connection which is used for Github Oauth must be activated in the management console after creation; it will stay in the PENDING status until that is done. This is performed in the "Developer Tools" section (same section as CodeBuild and CodeDeploy), in the "Settings" sub-menu.
 
-NOTE IF USING GITHUB WEBHOOKS: Due to a bug in Terraform, we must ignore_changes on the github configuration to prevent it attempting to update oauthtoken every apply. If this ever needs to be updated, this can be destroying the pipeline and letting it be remade, or by removing the the following code block from te codepipeline-terraform.tf file:
-```
-  lifecycle {
-    ignore_changes = [stage[0].action[0].configuration]
-  }
-```
 
-### Example:
+### Example With Three Environments and S3 Source:
 ```terraform
 module "terraform_pipeline" {
   source                             = "../.."
   create                             = true
   name                               = "${var.name_prefix}-utils${local.name_suffix}"
-  environment_names                  = ["dev"] # List of envs being deployed
-  cp_tf_manual_approval              = ["dev"] # List of envs enabled for manual approval
+  environment_names                  = ["dev", "qa", "prd"] # List of envs being deployed
+  cp_tf_manual_approval              = ["qa", "prd"] # List of envs enabled for manual approval
   codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
   cb_env_image                       = "aws/codebuild/standard:4.0"
   cb_env_type                        = "LINUX_CONTAINER"
-  cb_iam_role                        = "${var.name_prefix}-pipeline-role-${var.env_name}"
+  cb_iam_role                        = "${var.name_prefix}-pipeline-role-${var.env_name}" # This is what provides cross-account access. Ensure this role exists in each account and is assumable by CodeBuild in the account which runs the pipeline.
   cb_tf_version                      = "0.14.11"
   cb_env_name                        = var.env_name
   cp_source_owner                    = ""
@@ -37,6 +31,12 @@ module "terraform_pipeline" {
   cb_accounts_map = {
     dev = {
       account_id = "1234567890" 
+    }
+    qa = {
+      account_id = "2345678901"
+    }
+    prd = {
+      account_id = "3456789012"
     }
   }
 }
