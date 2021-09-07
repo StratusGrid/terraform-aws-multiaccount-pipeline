@@ -61,7 +61,7 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
       ]
 
       resources = [
-        "${var.cp_resource_bucket_arn}",
+        var.cp_resource_bucket_arn,
         "${var.cp_resource_bucket_arn}/*"
       ]
     }
@@ -77,7 +77,7 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
         "codestar-connections:UseConnection"
       ]
 
-      resources = ["${var.cp_source_codestar_connection_arn}"]
+      resources = [var.cp_source_codestar_connection_arn]
     }
   }
 
@@ -93,7 +93,7 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
     ]
 
     resources = [
-      "${aws_s3_bucket.pipeline_resources_bucket.arn}",
+      aws_s3_bucket.pipeline_resources_bucket.arn,
       "${aws_s3_bucket.pipeline_resources_bucket.arn}/*"
     ]
   }
@@ -121,7 +121,7 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
     ]
 
     resources = [
-      "${data.aws_kms_alias.s3.arn}"
+      data.aws_kms_alias.s3.arn
     ]
   }
 
