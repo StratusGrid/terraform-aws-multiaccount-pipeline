@@ -11,7 +11,7 @@ variable "cb_apply_timeout" {
 variable "cb_env_compute_type" {
   type        = string
   default     = "BUILD_GENERAL1_SMALL"
-  description = "Valid Values: BUILD_GENERAL1_SMALL | BUILD_GENERAL1_MEDIUM | BUILD_GENERAL1_LARGE | BUILD_GENERAL1_2XLARGE"
+  description = "Valid Values are BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE, BUILD_GENERAL1_2XLARGE"
 }
 
 variable "cb_env_image" {
@@ -36,7 +36,7 @@ variable "cb_env_name" {
 variable "cb_env_type" {
   type        = string
   default     = "LINUX_CONTAINER"
-  description = "Valid Values: WINDOWS_CONTAINER | LINUX_CONTAINER | LINUX_GPU_CONTAINER | ARM_CONTAINER"
+  description = "Codebuild Environment to use for stages in the pipeline. Valid Values are WINDOWS_CONTAINER, LINUX_CONTAINER, LINUX_GPU_CONTAINER, ARM_CONTAINER"
 }
 
 variable "cb_iam_role" {
@@ -128,7 +128,6 @@ variable "input_tags" {
   description = "Map of tags to apply to resources"
   type        = map(string)
   default = {
-    Developer   = "StratusGrid"
     Provisioner = "Terraform"
   }
 }
