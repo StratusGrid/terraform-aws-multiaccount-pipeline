@@ -11,13 +11,13 @@ variable "cb_apply_timeout" {
 variable "cb_env_compute_type" {
   type        = string
   default     = "BUILD_GENERAL1_SMALL"
-  description = "Valid Values are BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE, BUILD_GENERAL1_2XLARGE"
+  description = "Size of instance to run Codebuild within. Valid Values are BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE, BUILD_GENERAL1_2XLARGE"
 }
 
 variable "cb_env_image" {
   type        = string
-  default     = "aws/codebuild/standard:2.0"
-  description = "The image tag or image digest that identifies the Docker image to use for this build project."
+  default     = "aws/codebuild/standard:4.0"
+  description = "Identifies the Docker image to use for this build project. Available images documented at https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html"
 }
 
 #https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html
@@ -93,7 +93,8 @@ variable "cp_source_owner" {
 
 variable "cp_source_poll_for_changes" {
   type        = bool
-  description = "true/false should codepipeline poll for source code changes."
+  default     = false
+  description = "Cause codepipeline to poll regularly for source code changes. This is not required with a Codestar connection and should be avoided unless Codestar and webhooks are unavailable."
 }
 
 variable "cp_source_repo" {

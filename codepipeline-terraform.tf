@@ -36,7 +36,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
           version          = "1"
           output_artifacts = ["source_output"]
           configuration = {
-            PollForSourceChanges = "false"
+            PollForSourceChanges = var.cp_source_poll_for_changes
             S3Bucket    = var.cp_resource_bucket_name
             S3ObjectKey = var.cp_resource_bucket_key_name
           }
