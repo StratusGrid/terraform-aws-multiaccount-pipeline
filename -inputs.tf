@@ -1,53 +1,51 @@
 variable "cb_accounts_map" {
   type        = map(map(string))
-  description = "Map of environments and AWS accounts."
+  description = "Map of environments and AWS accounts to create pipeline stages for."
 }
 variable "cb_apply_timeout" {
   type        = number
   default     = 60
-  description = "Maximum time in minutes to wait while applying terraform before killing the build"
+  description = "Maximum time in minutes to wait while applying terraform before killing the build."
 }
 
 variable "cb_env_compute_type" {
   type        = string
   default     = "BUILD_GENERAL1_SMALL"
-  description = "Size of instance to run Codebuild within. Valid Values are BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE, BUILD_GENERAL1_2XLARGE"
+  description = "Size of instance to run Codebuild within. Valid Values are BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE, BUILD_GENERAL1_2XLARGE."
 }
 
 variable "cb_env_image" {
   type        = string
   default     = "aws/codebuild/standard:4.0"
-  description = "Identifies the Docker image to use for this build project. Available images documented at https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html"
+  description = "Identifies the Docker image to use for this build project. Available images documented in [the official AWS Codebuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)."
 }
 
-#https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html
 variable "cb_env_image_pull_credentials_type" {
   type        = string
   default     = "CODEBUILD"
-  description = "The type of credentials AWS CodeBuild uses to pull images in your build. There are two valid values"
+  description = "The type of credentials AWS CodeBuild uses to pull images in your build. There are two valid values described in [the ProjectEnvironment documentation](https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html)."
 }
 
 variable "cb_env_name" {
   type        = string
-  description = "should pull from env_name of calling terraform."
+  description = "Should be referenced from env_name of calling terraform module."
 }
-
 
 variable "cb_env_type" {
   type        = string
   default     = "LINUX_CONTAINER"
-  description = "Codebuild Environment to use for stages in the pipeline. Valid Values are WINDOWS_CONTAINER, LINUX_CONTAINER, LINUX_GPU_CONTAINER, ARM_CONTAINER"
+  description = "Codebuild Environment to use for stages in the pipeline. Valid Values are documented at [the ProjectEnvironment documentation](https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html)."
 }
 
 variable "cb_iam_role" {
   type        = string
-  description = "IAM role to assume for Terraform. Must be ADMIN."
+  description = "Cross-account IAM role to assume for Terraform. This role must be created in each account that is to be affected and must be RESTRICTED ADMIN within that account to have all necessary rights. The CodeBuild service within the account which runs the pipeline and builds must be able to assume this role."
 }
 
 variable "cb_plan_timeout" {
   type        = number
   default     = 15
-  description = "Maximum time in minutes to wait while generating terraform plan before killing the build"
+  description = "Maximum time in minutes to wait while generating terraform plan before killing the build."
 }
 
 variable "cb_tf_version" {
@@ -57,7 +55,7 @@ variable "cb_tf_version" {
 
 variable "codebuild_iam_policy" {
   type        = string
-  description = "JSON string defining codebuild IAM policy (must be passed in from caller)."
+  description = "JSON string defining the initial/base codebuild IAM policy (must be passed in from caller)."
 }
 
 variable "cp_resource_bucket_arn" {
@@ -72,52 +70,52 @@ variable "cp_resource_bucket_name" {
 
 variable "cp_resource_bucket_key_name" {
   type = string
-  description = "Name of the source artifact file."
+  description = "Prefix and key of the source artifact file. For instance, `source/master.zip`."
 }
 
 variable "cp_source_branch" {
   type        = string
-  description = "repository branch. for our purposes, this is often the same as the name of the environment (dev/qa/prd)."
+  description = "Repository branch to check out. Usually `master` or `main`."
 }
 
 variable "cp_source_codestar_connection_arn" {
   type        = string
-  description = "Codestar GitHub connection arn which grants access to source repository."
+  description = "ARN of Codestar GitHub connection which grants access to source repository."
   default = ""
 }
 
 variable "cp_source_owner" {
   type        = string
-  description = "GitHub user account name"
+  description = "GitHub user account name."
 }
 
 variable "cp_source_poll_for_changes" {
   type        = bool
   default     = false
-  description = "Cause codepipeline to poll regularly for source code changes. This is not required with a Codestar connection and should be avoided unless Codestar and webhooks are unavailable."
+  description = "Cause codepipeline to poll regularly for source code changes instead of waiting for CloudWatch Events. This is not required with a Codestar connection and should be avoided unless Codestar and webhooks are unavailable."
 }
 
 variable "cp_source_repo" {
   type        = string
-  description = "name of repository to clone"
+  description = "Name of repository to clone."
 }
 
 variable "cp_tf_manual_approval" {
   type        = list(any)
   default     = []
-  description = "determines if terraform pipeline requires manual approval for application."
+  description = "List of environments for which the terraform pipeline requires manual approval prior to application stage."
 }
 
 variable "create" {
   type        = string
   default     = ""
-  description = "conditionally create resources"
+  description = "Conditionally create resources. Affects nearly all resources."
 }
 
 variable "environment_names" {
   type        = list(string)
   default     = ["PRD"]
-  description = "names of all the environments to create"
+  description = "List of names of all the environments to create pipeline stages for."
 }
 
 #variable "s3_log_target_bucket" {
@@ -126,7 +124,7 @@ variable "environment_names" {
 #}
 
 variable "input_tags" {
-  description = "Map of tags to apply to resources"
+  description = "Map of tags to apply to all taggable resources."
   type        = map(string)
   default = {
     Provisioner = "Terraform"
@@ -136,6 +134,6 @@ variable "input_tags" {
 variable "name" {
   type        = string
   default     = "codepipline-module"
-  description = "name to prepend to all resource names within module"
+  description = "Name to prepend to all resource names within module."
 }
 
