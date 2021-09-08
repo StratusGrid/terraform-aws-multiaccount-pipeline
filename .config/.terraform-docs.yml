@@ -33,6 +33,8 @@ content: |-
   - Christopher Childress [chrischildresssg](https://github.com/chrischildresssg)
   - Ivan Casco [ivancasco-sg](https://github.com/ivancasco-sg)
 
+  Note, manual changes to the README will be overwritten when the documentation is updated. To update the documentation, run `terraform-docs -c .config/.terraform-docs.yml .`
+
 sections:
   show:
     - requirements
