@@ -47,5 +47,5 @@ sort:
   by: name
 
 output:
-  file: test_output.md
-  mode: insert
+  file: README.md
+  mode: replace
