@@ -1,6 +1,6 @@
 #this bucket is used to store config files, etc. which are used for processing.
 resource "aws_s3_bucket" "pipeline_resources_bucket" {
-  bucket = var.name
+  bucket = "${var.name}-pipeline-resources"
 
   versioning {
     enabled = true
@@ -38,6 +38,14 @@ resource "aws_s3_bucket" "pipeline_resources_bucket" {
   }
 
   tags = merge(local.common_tags, {})
+}
+
+resource "aws_s3_bucket_public_access_block" "pipeline_resources_bucket_pab" {
+  bucket                  = aws_s3_bucket.pipeline_resources_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
 # this bucket is used for logging
