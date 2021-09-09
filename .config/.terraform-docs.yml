@@ -29,6 +29,21 @@ content: |-
 
   {{ .Outputs }}
 
+  ---
+
+  ## Regarding CodeStar Connections for GitHub integration
+
+  A Codestar connection will be created in the "pending" state and must then be manually activated/confirmed in the management console. The ARN for the confirmed connection must be entered in the module variables to provide the necessary connection.
+
+  ## Example CodeStar Connection resource
+
+  ```hcl
+  resource "aws_codestarconnections_connection" "test_repo" { 
+    name = "test-cicd-connection" 
+    provider_type = "GitHub"
+  }
+  ```
+
   ## Contributors
   - Christopher Childress [chrischildresssg](https://github.com/chrischildresssg)
   - Ivan Casco [ivancasco-sg](https://github.com/ivancasco-sg)

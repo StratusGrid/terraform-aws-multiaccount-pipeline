@@ -197,9 +197,24 @@ POLICY
 |------|-------------|
 | <a name="output_codepipeline_resources_bucket_arn"></a> [codepipeline\_resources\_bucket\_arn](#output\_codepipeline\_resources\_bucket\_arn) | n/a |
 
+---
+
+## Regarding CodeStar Connections for GitHub integration
+
+A Codestar connection will be created in the "pending" state and must then be manually activated/confirmed in the management console. The ARN for the confirmed connection must be entered in the module variables to provide the necessary connection.
+
+## Example CodeStar Connection resource
+
+```hcl
+resource "aws_codestarconnections_connection" "test_repo" { 
+  name = "test-cicd-connection" 
+  provider_type = "GitHub"
+}
+```
+
 ## Contributors
 - Christopher Childress [chrischildresssg](https://github.com/chrischildresssg)
 - Ivan Casco [ivancasco-sg](https://github.com/ivancasco-sg)
 
-To update the documentation, run `terraform-docs -c .config/.terraform-docs.yml .`
+Note, manual changes to the README will be overwritten when the documentation is updated. To update the documentation, run `terraform-docs -c .config/.terraform-docs.yml .`
 <!-- END_TF_DOCS -->
