@@ -37,7 +37,7 @@ resource "aws_s3_bucket" "pipeline_resources_bucket" {
     }
   }
 
-  tags = merge(var.input_tags, {})
+  tags = merge(local.common_tags, {})
 }
 
 resource "aws_s3_bucket_public_access_block" "pipeline_resources_bucket_pab" {
