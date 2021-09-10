@@ -16,7 +16,7 @@ variable "cb_env_compute_type" {
 
 variable "cb_env_image" {
   type        = string
-  default     = "aws/codebuild/standard:4.0"
+  default     = "aws/codebuild/standard:5.0"
   description = "Identifies the Docker image to use for this build project. Available images documented in [the official AWS Codebuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)."
 }
 
