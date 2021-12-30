@@ -1,10 +1,10 @@
 variable "cb_accounts_map" {
-  type        = map(map(object(
+  type        = map(object(
     {
       account_id = string
       iam_role   = string
     }
-  )))
+  ))
   description = "Map of environments, IAM assumption roles, AWS accounts to create pipeline stages for.cb_accounts_map = {dev = {account_id = 123456789012; iam_role = \"stringrolename\"}}"
 }
 variable "cb_apply_timeout" {
@@ -158,9 +158,9 @@ variable "apply_tfvars" {
 # https://medium.com/codex/terraform-variable-validation-b9b3e7eddd79
 variable "source_control" {
   description = "Which source control is being used?"
-  type        = list(string)
+  type        = string
   validation {
-    condition     = contains(["GitHub","BitBucket"])
+    condition     = contains(["GitHub","BitBucket"], var.source_control)
     error_message = "A valid source control provider hasn't been selected."
   }
 }
