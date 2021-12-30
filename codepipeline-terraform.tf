@@ -112,7 +112,8 @@ resource "aws_codepipeline" "codepipeline_terraform" {
           provider = "Manual"
           configuration = {
             CustomData         = "Please review the codebuild output and verify the changes. Commit ID: #{SourceVariables.CommitId}"
-            ExternalEntityLink = var.source_control_commit_paths[var.source_control] # This will take the key map from the inputs file and allow it to expressed later
+            # This will take the key map from the inputs file and allow it to expressed later
+            ExternalEntityLink = "${var.source_control_commit_paths[var.source_control]["path1"]}/${var.cp_source_owner}/${var.cp_source_repo}/${var.source_control_commit_paths[var.source_control]["path2"]}/#{SourceVariables.CommitId}"
           }
           input_artifacts  = []
           output_artifacts = []

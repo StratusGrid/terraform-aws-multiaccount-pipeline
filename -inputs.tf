@@ -154,22 +154,31 @@ variable "apply_tfvars" {
   default     = "./apply-tfvars"
 }
 
-#Can I do a validation of Github/Bitbucket - https://www.hashicorp.com/blog/custom-variable-validation-in-terraform-0-13
+# https://www.hashicorp.com/blog/custom-variable-validation-in-terraform-0-13
+# https://medium.com/codex/terraform-variable-validation-b9b3e7eddd79
 variable "source_control" {
   description = "Which source control is being used?"
   type        = list(string)
-  validation  = {
+  validation {
     condition     = contains(["GitHub","BitBucket"])
     error_message = "A valid source control provider hasn't been selected."
   }
 }
 
-#Use a reference key here from var.source_control to reference a map
+# Uses a reference key here from var.source_control to reference a map
 variable "source_control_commit_paths" {
   description = "Source Control URL Commit Paths Map"
-  type        = map(string)
+  type        = map(map(string))
   default = {
-    "GitHub"    = "https://github.com/${var.cp_source_owner}/${var.cp_source_repo}/commit/#{SourceVariables.CommitId}"
-    "BitBucket" = "https://bitbucket.org/${var.cp_source_owner}/${var.cp_source_repo}/commits/#{SourceVariables.CommitId}"
+    #"GitHub"    = "https://github.com/${var.cp_source_owner}/${var.cp_source_repo}/commit/#{SourceVariables.CommitId}"
+    #"BitBucket" = "https://bitbucket.org/${var.cp_source_owner}/${var.cp_source_repo}/commits/#{SourceVariables.CommitId}"
+    GitHub = {
+      path1 = "https://github.com/"
+      path2 = "commit"
+    }
+    BitBucket = {
+      path1 = "https://bitbucket.org/"
+      path2 = "commits"
+    }
   }
 }
