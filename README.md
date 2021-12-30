@@ -20,7 +20,6 @@ module "terraform_pipeline" {
   create                             = true
   name                               = "${var.name_prefix}-utils${local.name_suffix}"
   environment_names                  = ["dev", "qa", "prd"] # List of envs being deployed
-  cp_tf_manual_approval              = ["qa", "prd"] # List of envs enabled for manual approval
   codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
   cb_env_image                       = "aws/codebuild/standard:4.0"
@@ -188,7 +187,6 @@ POLICY
 | <a name="input_cp_source_owner"></a> [cp\_source\_owner](#input\_cp\_source\_owner) | GitHub user account name. | `string` | n/a | yes |
 | <a name="input_cp_source_poll_for_changes"></a> [cp\_source\_poll\_for\_changes](#input\_cp\_source\_poll\_for\_changes) | Cause codepipeline to poll regularly for source code changes instead of waiting for CloudWatch Events. This is not required with a Codestar connection and should be avoided unless Codestar and webhooks are unavailable. | `bool` | `false` | no |
 | <a name="input_cp_source_repo"></a> [cp\_source\_repo](#input\_cp\_source\_repo) | Name of repository to clone. | `string` | n/a | yes |
-| <a name="input_cp_tf_manual_approval"></a> [cp\_tf\_manual\_approval](#input\_cp\_tf\_manual\_approval) | List of environments for which the terraform pipeline requires manual approval prior to application stage. | `list(any)` | `[]` | no |
 | <a name="input_create"></a> [create](#input\_create) | Conditionally create resources. Affects nearly all resources. | `string` | `""` | no |
 | <a name="input_environment_names"></a> [environment\_names](#input\_environment\_names) | List of names of all the environments to create pipeline stages for. | `list(string)` | <pre>[<br>  "PRD"<br>]</pre> | no |
 | <a name="input_input_tags"></a> [input\_tags](#input\_input\_tags) | Map of tags to apply to all taggable resources. | `map(string)` | <pre>{<br>  "Provisioner": "Terraform"<br>}</pre> | no |

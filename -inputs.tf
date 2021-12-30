@@ -1,8 +1,9 @@
 variable "cb_accounts_map" {
   type        = map(object(
     {
-      account_id = string
-      iam_role   = string
+      account_id      = string
+      iam_role        = string
+      manual_approval = bool
     }
   ))
   description = "Map of environments, IAM assumption roles, AWS accounts to create pipeline stages for.cb_accounts_map = {dev = {account_id = 123456789012; iam_role = \"stringrolename\"}}"
@@ -100,12 +101,6 @@ variable "cp_source_repo" {
   description = "Name of repository to clone."
 }
 
-variable "cp_tf_manual_approval" {
-  type        = list(any)
-  default     = []
-  description = "List of environments for which the terraform pipeline requires manual approval prior to application stage."
-}
-
 variable "create" {
   type        = string
   default     = ""
@@ -154,8 +149,6 @@ variable "source_control_commit_paths" {
   description = "Source Control URL Commit Paths Map"
   type        = map(map(string))
   default = {
-    #"GitHub"    = "https://github.com/${var.cp_source_owner}/${var.cp_source_repo}/commit/#{SourceVariables.CommitId}"
-    #"BitBucket" = "https://bitbucket.org/${var.cp_source_owner}/${var.cp_source_repo}/commits/#{SourceVariables.CommitId}"
     GitHub = {
       path1 = "https://github.com/"
       path2 = "commit"

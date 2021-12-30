@@ -103,7 +103,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
       }
 
       dynamic "action" {
-        for_each = contains(var.cp_tf_manual_approval, stage.value) && var.cp_source_repo != "" ? [true] : []
+        for_each = var.cb_accounts_map[stage.value].manual_approval == true && var.cp_source_repo != "" ? [true] : []
         content {
           name     = "Approval"
           category = "Approval"
@@ -122,7 +122,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
       }
 
       dynamic "action" {
-        for_each = contains(var.cp_tf_manual_approval, stage.value) && var.cp_resource_bucket_name != "" ? [true] : []
+        for_each = var.cb_accounts_map[stage.value].manual_approval && var.cp_resource_bucket_name != "" ? [true] : []
         content {
           name     = "Approval"
           category = "Approval"
