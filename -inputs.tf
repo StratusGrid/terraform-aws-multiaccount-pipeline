@@ -137,3 +137,14 @@ variable "name" {
   description = "Name to prepend to all resource names within module."
 }
 
+variable "init_tfvars" {
+  description = "The path for the TFVars Init folder, this is the full relative path. I.E ./init-tfvars"
+  type        = string
+  default     = "./init-tfvars"
+}
+
+variable "apply_tfvars" {
+  description = "The path for the TFVars Apply folder, this is the full relative path"
+  type        = string
+  default     = "./apply-tfvars"
+}
