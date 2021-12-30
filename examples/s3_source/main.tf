@@ -8,7 +8,6 @@ module "terraform_pipeline" {
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
   cb_env_image                       = "aws/codebuild/standard:4.0"
   cb_env_type                        = "LINUX_CONTAINER"
-  cb_iam_role                        = "${var.name_prefix}-pipeline-role-${var.env_name}" # This is what provides cross-account access. Ensure this role exists in each account and is assumable by CodeBuild in the account which runs the pipeline.
   cb_tf_version                      = "0.14.11"
   cb_env_name                        = var.env_name
   cp_source_owner                    = ""

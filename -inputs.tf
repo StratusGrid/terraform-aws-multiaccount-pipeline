@@ -42,11 +42,6 @@ variable "cb_env_type" {
   description = "Codebuild Environment to use for stages in the pipeline. Valid Values are documented at [the ProjectEnvironment documentation](https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html)."
 }
 
-variable "cb_iam_role" {
-  type        = string
-  description = "Cross-account IAM role to assume for Terraform. This role must be created in each account that is to be affected and must be RESTRICTED ADMIN within that account to have all necessary rights. The CodeBuild service within the account which runs the pipeline and builds must be able to assume this role."
-}
-
 variable "cb_plan_timeout" {
   type        = number
   default     = 15
