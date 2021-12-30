@@ -1,6 +1,11 @@
 variable "cb_accounts_map" {
-  type        = map(map(string))
-  description = "Map of environments and AWS accounts to create pipeline stages for."
+  type        = map(map(object(
+    {
+      account_id = string
+      iam_role   = string
+    }
+  )))
+  description = "Map of environments, IAM assumption roles, AWS accounts to create pipeline stages for.cb_accounts_map = {dev = {account_id = 123456789012; iam_role = \"stringrolename\"}}"
 }
 variable "cb_apply_timeout" {
   type        = number
