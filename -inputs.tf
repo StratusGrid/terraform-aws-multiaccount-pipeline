@@ -80,13 +80,13 @@ variable "cp_source_branch" {
 
 variable "cp_source_codestar_connection_arn" {
   type        = string
-  description = "ARN of Codestar GitHub connection which grants access to source repository."
+  description = "ARN of Codestar of GitHub/Bitbucket/etc connection which grants access to source repository."
   default = ""
 }
 
 variable "cp_source_owner" {
   type        = string
-  description = "GitHub user account name."
+  description = "GitHub/Bitbucket organization username."
 }
 
 variable "cp_source_poll_for_changes" {
@@ -147,4 +147,24 @@ variable "apply_tfvars" {
   description = "The path for the TFVars Apply folder, this is the full relative path"
   type        = string
   default     = "./apply-tfvars"
+}
+
+#Can I do a validation of Github/Bitbucket - https://www.hashicorp.com/blog/custom-variable-validation-in-terraform-0-13
+variable "source_control" {
+  description = "Which source control is being used?"
+  type        = list(string)
+  validation  = {
+    condition     = contains(["GitHub","BitBucket"])
+    error_message = "A valid source control provider hasn't been selected."
+  }
+}
+
+#Use a reference key here from var.source_control to reference a map
+variable "source_control_commit_paths" {
+  description = "Source Control URL Commit Paths Map"
+  type        = map(string)
+  default = {
+    "GitHub"    = "https://github.com/${var.cp_source_owner}/${var.cp_source_repo}/commit/#{SourceVariables.CommitId}"
+    "BitBucket" = "https://bitbucket.org/${var.cp_source_owner}/${var.cp_source_repo}/commits/#{SourceVariables.CommitId}"
+  }
 }
