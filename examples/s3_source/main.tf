@@ -2,7 +2,6 @@ module "terraform_pipeline" {
   source                             = "../.."
   create                             = true
   name                               = "${var.name_prefix}-utils${local.name_suffix}"
-  environment_names                  = ["dev", "qa", "prd"] # List of envs being deployed
   cp_tf_manual_approval              = ["qa", "prd"] # List of envs enabled for manual approval
   codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"

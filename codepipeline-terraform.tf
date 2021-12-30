@@ -63,7 +63,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
   }
 
   dynamic "stage" {
-    for_each = var.environment_names
+    for_each = keys(var.cb_accounts_map)
     content {
       name = "${upper(stage.value)}-Plan-and-Apply"
 

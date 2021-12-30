@@ -112,17 +112,6 @@ variable "create" {
   description = "Conditionally create resources. Affects nearly all resources."
 }
 
-variable "environment_names" {
-  type        = list(string)
-  default     = ["PRD"]
-  description = "List of names of all the environments to create pipeline stages for."
-}
-
-#variable "s3_log_target_bucket" {
-#  type        = string
-#  description = "target bucket for logs"
-#}
-
 variable "input_tags" {
   description = "Map of tags to apply to all taggable resources."
   type        = map(string)

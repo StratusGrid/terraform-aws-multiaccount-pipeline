@@ -24,11 +24,6 @@ resource "aws_s3_bucket" "pipeline_resources_bucket" {
     }
   }
 
-  #    logging {
-  #      target_bucket = var.s3_log_target_bucket
-  #      target_prefix = "s3/${var.name}/"
-  #    }
-
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
