@@ -1,3 +1,5 @@
+Below is an example policy of what to add to thge child accounts for the multi account pipeline to assume and have the correct permissions to acomplish it's role.
+
 ```hcl
 data "aws_iam_policy_document" "this" {
   statement {

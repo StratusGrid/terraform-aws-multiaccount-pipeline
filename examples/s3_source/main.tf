@@ -1,30 +1,46 @@
+TACOS - To UPDATE!!!
+
 module "terraform_pipeline" {
-  source                             = "../.."
+  source  = "StratusGrid/multiaccount-pipeline/aws"
+  version = "~> 2.0.0"
+
   create                             = true
   name                               = "${var.name_prefix}-utils${local.name_suffix}"
   codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
-  cb_env_image                       = "aws/codebuild/standard:4.0"
+  cb_env_image                       = "aws/codebuild/standard:5.0"
   cb_env_type                        = "LINUX_CONTAINER"
-  cb_tf_version                      = "0.14.11"
+  cb_tf_version                      = var.terraform_version
   cb_env_name                        = var.env_name
-  cp_source_owner                    = ""
-  cp_source_repo                     = ""
-  cp_source_branch                   = "master"
+  cp_source_owner                    = "myorg" # GitHub/BitBucket Org/ProjectName
+  cp_source_repo                     = "myrepo" # Repository Name
+  cp_source_branch                   = "main" #Brand
   cb_env_image_pull_credentials_type = "CODEBUILD"
-  cp_resource_bucket_arn             = aws_s3_bucket.utils_resource_bucket.arn
-  cp_resource_bucket_name            = aws_s3_bucket.utils_resource_bucket.bucket
-  cp_resource_bucket_key_name        = "source_artifacts/master.zip"
+  cp_source_codestar_connection_arn  = aws_codestarconnections_connection.bb-cust-thrive360-cicd-iac.arn
+  source_control                     = "GitHub" #GitHub or BitBucket
+  
+  //This is part of a or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  cp_resource_bucket_arn             = ""
+  cp_resource_bucket_name            = ""
+  cp_resource_bucket_key_name        = ""
   cp_source_poll_for_changes         = true
+  
+  #Each environment but be in the order
   cb_accounts_map = {
-    dev = {
-      account_id = "1234567890" 
+    "01dev" = {
+      account_id = "012345678901"
+      iam_role   = "iam-CICD"
+      manual_approval = false
     }
-    qa = {
-      account_id = "2345678901"
+    "02stg" = {
+      account_id = "123456789012"
+      iam_role   = "iam-CICD"
+      manual_approval = true
     }
-    prd = {
-      account_id = "3456789012"
+    "03prd" = {
+      account_id = "234567890123"
+      iam_role   = "iam-CICD"
+      manual_approval = true
     }
   }
 }

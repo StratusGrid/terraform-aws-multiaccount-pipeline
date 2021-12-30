@@ -63,7 +63,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
   }
 
   dynamic "stage" {
-    for_each = keys(var.cb_accounts_map)
+    for_each = [for k, s in var.cb_accounts_map : "${substr(k,2,-1)}"]
     content {
       name = "${upper(stage.value)}-Plan-and-Apply"
 
