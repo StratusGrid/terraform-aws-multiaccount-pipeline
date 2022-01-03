@@ -1,5 +1,3 @@
-TACOS - To UPDATE!!!
-
 module "terraform_pipeline" {
   source  = "StratusGrid/multiaccount-pipeline/aws"
   version = "~> 2.0.0"
@@ -12,34 +10,35 @@ module "terraform_pipeline" {
   cb_env_type                        = "LINUX_CONTAINER"
   cb_tf_version                      = var.terraform_version
   cb_env_name                        = var.env_name
-  cp_source_owner                    = "myorg" # GitHub/BitBucket Org/ProjectName
+  cp_source_owner                    = "myorg" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
   cp_source_repo                     = "myrepo" # Repository Name
-  cp_source_branch                   = "main" #Brand
+  cp_source_branch                   = "main" #Branch
   cb_env_image_pull_credentials_type = "CODEBUILD"
-  cp_source_codestar_connection_arn  = aws_codestarconnections_connection.bb-cust-thrive360-cicd-iac.arn
+  cp_source_codestar_connection_arn  = aws_codestarconnections_connection.codestar_connection_name.arn
   source_control                     = "GitHub" #GitHub or BitBucket
   
-  //This is part of a or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  //This is part of an or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
   cp_resource_bucket_arn             = ""
   cp_resource_bucket_name            = ""
   cp_resource_bucket_key_name        = ""
   cp_source_poll_for_changes         = true
   
-  #Each environment but be in the order
+  //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that
+  //We make an assumption that the right half of the environment name matches the environment name in the TF init and apply directorie
   cb_accounts_map = {
-    "01dev" = {
+    "01-dev" = {
       account_id = "012345678901"
-      iam_role   = "iam-CICD"
+      iam_role   = "iam-cicd"
       manual_approval = false
     }
-    "02stg" = {
+    "02-stg" = {
       account_id = "123456789012"
-      iam_role   = "iam-CICD"
+      iam_role   = "iam-cicd"
       manual_approval = true
     }
-    "03prd" = {
+    "03-prd" = {
       account_id = "234567890123"
-      iam_role   = "iam-CICD"
+      iam_role   = "iam-cicd"
       manual_approval = true
     }
   }
