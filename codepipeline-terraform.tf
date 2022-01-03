@@ -160,7 +160,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
               {
                 name  = "TERRAFORM_ASSUME_ROLE"
                 type  = "PLAINTEXT"
-                value = substr(stage.value, 3, -1)
+                value = var.cb_accounts_map[stage.value]["iam_role"]
               },
               {
                 name  = "TERRAFORM_ACCOUNT_ID",
