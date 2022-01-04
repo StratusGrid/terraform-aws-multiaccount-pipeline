@@ -1,33 +1,46 @@
 module "terraform_pipeline" {
-  source                             = "../.."
+  source  = "StratusGrid/multiaccount-pipeline/aws"
+  version = "~> 2.0.0"
+
   create                             = true
   name                               = "${var.name_prefix}-utils${local.name_suffix}"
-  environment_names                  = ["dev", "qa", "prd"] # List of envs being deployed
-  cp_tf_manual_approval              = ["qa", "prd"] # List of envs enabled for manual approval
   codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
-  cb_env_image                       = "aws/codebuild/standard:4.0"
+  cb_env_image                       = "aws/codebuild/standard:5.0"
   cb_env_type                        = "LINUX_CONTAINER"
-  cb_iam_role                        = "${var.name_prefix}-pipeline-role-${var.env_name}" # This is what provides cross-account access. Ensure this role exists in each account and is assumable by CodeBuild in the account which runs the pipeline.
-  cb_tf_version                      = "0.14.11"
+  cb_tf_version                      = var.terraform_version
   cb_env_name                        = var.env_name
-  cp_source_owner                    = ""
-  cp_source_repo                     = ""
-  cp_source_branch                   = "master"
+  cp_source_owner                    = "myorg" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
+  cp_source_repo                     = "myrepo" # Repository Name
+  cp_source_branch                   = "main" #Branch
   cb_env_image_pull_credentials_type = "CODEBUILD"
-  cp_resource_bucket_arn             = aws_s3_bucket.utils_resource_bucket.arn
-  cp_resource_bucket_name            = aws_s3_bucket.utils_resource_bucket.bucket
-  cp_resource_bucket_key_name        = "source_artifacts/master.zip"
+  cp_source_codestar_connection_arn  = aws_codestarconnections_connection.codestar_connection_name.arn
+  source_control                     = "GitHub" #GitHub or BitBucket
+  
+  //This is part of an or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  cp_resource_bucket_arn             = ""
+  cp_resource_bucket_name            = ""
+  cp_resource_bucket_key_name        = ""
   cp_source_poll_for_changes         = true
+  
+  //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
+  //The underlying code requires the 3 digit prefix to work.
+  //We make an assumption that the right half of the environment name matches the environment name in the TF init and apply directory.
   cb_accounts_map = {
-    dev = {
-      account_id = "1234567890" 
+    "001-dev" = {
+      account_id = "0012345678901"
+      iam_role   = "iam-cicd"
+      manual_approval = false
     }
-    qa = {
-      account_id = "2345678901"
+    "002-stg" = {
+      account_id = "123456789012"
+      iam_role   = "iam-cicd"
+      manual_approval = true
     }
-    prd = {
-      account_id = "3456789012"
+    "003-prd" = {
+      account_id = "234567890123"
+      iam_role   = "iam-cicd"
+      manual_approval = true
     }
   }
 }

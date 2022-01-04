@@ -47,11 +47,11 @@ phases:
       - |
         eval `aws sts assume-role --role-arn arn:aws:iam::$${TERRAFORM_ACCOUNT_ID}:role/$${TERRAFORM_ASSUME_ROLE} --role-session-name terraform-codebuild-${var.cb_env_name} \
         | jq -r '"export AWS_ACCESS_KEY_ID=" + .Credentials.AccessKeyId, "export AWS_SECRET_ACCESS_KEY="+.Credentials.SecretAccessKey, "export AWS_SESSION_TOKEN="+.Credentials.SessionToken'`
-      - terraform init -backend-config=./init-tfvars/$${TERRAFORM_ENVIRONMENT_NAME}.tfvars
+      - terraform init -backend-config=${var.init_tfvars}/$${TERRAFORM_ENVIRONMENT_NAME}.tfvars
   build:
     commands:
       - echo Build started on `date`
-      - terraform plan -out=tfplan -var-file=./apply-tfvars/$${TERRAFORM_ENVIRONMENT_NAME}.tfvars
+      - terraform plan -out=tfplan -var-file=${var.apply_tfvars}/$${TERRAFORM_ENVIRONMENT_NAME}.tfvars
   post_build:
     commands:
       - echo Entered the post_build phase...
@@ -118,7 +118,7 @@ phases:
       - |
         eval `aws sts assume-role --role-arn arn:aws:iam::$${TERRAFORM_ACCOUNT_ID}:role/$${TERRAFORM_ASSUME_ROLE} --role-session-name terraform-codebuild-${var.cb_env_name} \
         | jq -r '"export AWS_ACCESS_KEY_ID=" + .Credentials.AccessKeyId, "export AWS_SECRET_ACCESS_KEY=" + .Credentials.SecretAccessKey, "export AWS_SESSION_TOKEN=" + .Credentials.SessionToken'`
-      - terraform init -backend-config=./init-tfvars/$${TERRAFORM_ENVIRONMENT_NAME}.tfvars
+      - terraform init -backend-config=${var.init_tfvars}/$${TERRAFORM_ENVIRONMENT_NAME}.tfvars
   build:
     commands:
       - echo Build started on `date`

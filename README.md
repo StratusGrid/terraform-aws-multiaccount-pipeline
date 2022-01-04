@@ -8,43 +8,57 @@
 ---
 
 ## Cross-Account Role Assumption
-In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume.  Thus, you should create an IAM role in each account with the same name and restricted ADMIN rights, establish trust relationships to allow the CICD account to assume that role, and then provide the CodeBuild execution roles with STS Assume role rights for that role. This role's name is defined in the "cb_iam_role" parameter.
+In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume.  Thus, you should create an IAM role in each account with the same name and [restricted ADMIN rights](https://github.com/StratusGrid/terraform-aws-iam-group-restricted-admin), establish trust relationships to allow the CICD account to assume that role, and then provide the CodeBuild execution roles with STS Assume role rights for that role. This role's name is defined in the cb_accounts_map map parameter. The listed role works assuming you remove the sts:AssumeRole deny.
 
+An example policy to this is located [here](IAM-POLICY.md).
 ---
 
 ## Example with S3 bucket source
 
 ```hcl
 module "terraform_pipeline" {
-  source                             = "../.."
+  source  = "StratusGrid/multiaccount-pipeline/aws"
+  version = "~> 2.0.0"
+
   create                             = true
   name                               = "${var.name_prefix}-utils${local.name_suffix}"
-  environment_names                  = ["dev", "qa", "prd"] # List of envs being deployed
-  cp_tf_manual_approval              = ["qa", "prd"] # List of envs enabled for manual approval
   codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
-  cb_env_image                       = "aws/codebuild/standard:4.0"
+  cb_env_image                       = "aws/codebuild/standard:5.0"
   cb_env_type                        = "LINUX_CONTAINER"
-  cb_iam_role                        = "${var.name_prefix}-pipeline-role-${var.env_name}" # This is what provides cross-account access. Ensure this role exists in each account and is assumable by CodeBuild in the account which runs the pipeline.
-  cb_tf_version                      = "0.14.11"
+  cb_tf_version                      = var.terraform_version
   cb_env_name                        = var.env_name
-  cp_source_owner                    = ""
-  cp_source_repo                     = ""
-  cp_source_branch                   = "master"
+  cp_source_owner                    = "myorg" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
+  cp_source_repo                     = "myrepo" # Repository Name
+  cp_source_branch                   = "main" #Branch
   cb_env_image_pull_credentials_type = "CODEBUILD"
-  cp_resource_bucket_arn             = aws_s3_bucket.utils_resource_bucket.arn
-  cp_resource_bucket_name            = aws_s3_bucket.utils_resource_bucket.bucket
-  cp_resource_bucket_key_name        = "source_artifacts/master.zip"
+  cp_source_codestar_connection_arn  = aws_codestarconnections_connection.codestar_connection_name.arn
+  source_control                     = "GitHub" #GitHub or BitBucket
+  
+  //This is part of an or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  cp_resource_bucket_arn             = ""
+  cp_resource_bucket_name            = ""
+  cp_resource_bucket_key_name        = ""
   cp_source_poll_for_changes         = true
+  
+  //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
+  //The underlying code requires the 3 digit prefix to work.
+  //We make an assumption that the right half of the environment name matches the environment name in the TF init and apply directory.
   cb_accounts_map = {
-    dev = {
-      account_id = "1234567890" 
+    "001-dev" = {
+      account_id = "0012345678901"
+      iam_role   = "iam-cicd"
+      manual_approval = false
     }
-    qa = {
-      account_id = "2345678901"
+    "002-stg" = {
+      account_id = "123456789012"
+      iam_role   = "iam-cicd"
+      manual_approval = true
     }
-    prd = {
-      account_id = "3456789012"
+    "003-prd" = {
+      account_id = "234567890123"
+      iam_role   = "iam-cicd"
+      manual_approval = true
     }
   }
 }
@@ -142,7 +156,6 @@ locals {
 }
 POLICY
 }
-
 ```
 
 ---
@@ -171,14 +184,14 @@ POLICY
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_cb_accounts_map"></a> [cb\_accounts\_map](#input\_cb\_accounts\_map) | Map of environments and AWS accounts to create pipeline stages for. | `map(map(string))` | n/a | yes |
+| <a name="input_apply_tfvars"></a> [apply\_tfvars](#input\_apply\_tfvars) | The path for the TFVars Apply folder, this is the full relative path | `string` | `"./apply-tfvars"` | no |
+| <a name="input_cb_accounts_map"></a> [cb\_accounts\_map](#input\_cb\_accounts\_map) | Map of environments, IAM assumption roles, AWS accounts to create pipeline stages for.cb\_accounts\_map = {dev = {account\_id = 123456789012; iam\_role = "stringrolename"}} | <pre>map(object(<br>    {<br>      account_id      = string<br>      iam_role        = string<br>      manual_approval = bool<br>    }<br>  ))</pre> | n/a | yes |
 | <a name="input_cb_apply_timeout"></a> [cb\_apply\_timeout](#input\_cb\_apply\_timeout) | Maximum time in minutes to wait while applying terraform before killing the build. | `number` | `60` | no |
 | <a name="input_cb_env_compute_type"></a> [cb\_env\_compute\_type](#input\_cb\_env\_compute\_type) | Size of instance to run Codebuild within. Valid Values are BUILD\_GENERAL1\_SMALL, BUILD\_GENERAL1\_MEDIUM, BUILD\_GENERAL1\_LARGE, BUILD\_GENERAL1\_2XLARGE. | `string` | `"BUILD_GENERAL1_SMALL"` | no |
 | <a name="input_cb_env_image"></a> [cb\_env\_image](#input\_cb\_env\_image) | Identifies the Docker image to use for this build project. Available images documented in [the official AWS Codebuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html). | `string` | `"aws/codebuild/standard:5.0"` | no |
 | <a name="input_cb_env_image_pull_credentials_type"></a> [cb\_env\_image\_pull\_credentials\_type](#input\_cb\_env\_image\_pull\_credentials\_type) | The type of credentials AWS CodeBuild uses to pull images in your build. There are two valid values described in [the ProjectEnvironment documentation](https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html). | `string` | `"CODEBUILD"` | no |
 | <a name="input_cb_env_name"></a> [cb\_env\_name](#input\_cb\_env\_name) | Should be referenced from env\_name of calling terraform module. | `string` | n/a | yes |
 | <a name="input_cb_env_type"></a> [cb\_env\_type](#input\_cb\_env\_type) | Codebuild Environment to use for stages in the pipeline. Valid Values are documented at [the ProjectEnvironment documentation](https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html). | `string` | `"LINUX_CONTAINER"` | no |
-| <a name="input_cb_iam_role"></a> [cb\_iam\_role](#input\_cb\_iam\_role) | Cross-account IAM role to assume for Terraform. This role must be created in each account that is to be affected and must be RESTRICTED ADMIN within that account to have all necessary rights. The CodeBuild service within the account which runs the pipeline and builds must be able to assume this role. | `string` | n/a | yes |
 | <a name="input_cb_plan_timeout"></a> [cb\_plan\_timeout](#input\_cb\_plan\_timeout) | Maximum time in minutes to wait while generating terraform plan before killing the build. | `number` | `15` | no |
 | <a name="input_cb_tf_version"></a> [cb\_tf\_version](#input\_cb\_tf\_version) | Version of terraform to download and install. Must match version scheme used for URL creation on terraform site. | `string` | n/a | yes |
 | <a name="input_codebuild_iam_policy"></a> [codebuild\_iam\_policy](#input\_codebuild\_iam\_policy) | JSON string defining the initial/base codebuild IAM policy (must be passed in from caller). | `string` | n/a | yes |
@@ -186,15 +199,16 @@ POLICY
 | <a name="input_cp_resource_bucket_key_name"></a> [cp\_resource\_bucket\_key\_name](#input\_cp\_resource\_bucket\_key\_name) | Prefix and key of the source artifact file. For instance, `source/master.zip`. | `string` | n/a | yes |
 | <a name="input_cp_resource_bucket_name"></a> [cp\_resource\_bucket\_name](#input\_cp\_resource\_bucket\_name) | Name of the S3 bucket where the source artifacts exist. | `string` | n/a | yes |
 | <a name="input_cp_source_branch"></a> [cp\_source\_branch](#input\_cp\_source\_branch) | Repository branch to check out. Usually `master` or `main`. | `string` | n/a | yes |
-| <a name="input_cp_source_codestar_connection_arn"></a> [cp\_source\_codestar\_connection\_arn](#input\_cp\_source\_codestar\_connection\_arn) | ARN of Codestar GitHub connection which grants access to source repository. | `string` | `""` | no |
-| <a name="input_cp_source_owner"></a> [cp\_source\_owner](#input\_cp\_source\_owner) | GitHub user account name. | `string` | n/a | yes |
+| <a name="input_cp_source_codestar_connection_arn"></a> [cp\_source\_codestar\_connection\_arn](#input\_cp\_source\_codestar\_connection\_arn) | ARN of Codestar of GitHub/Bitbucket/etc connection which grants access to source repository. | `string` | `""` | no |
+| <a name="input_cp_source_owner"></a> [cp\_source\_owner](#input\_cp\_source\_owner) | GitHub/Bitbucket organization username. | `string` | n/a | yes |
 | <a name="input_cp_source_poll_for_changes"></a> [cp\_source\_poll\_for\_changes](#input\_cp\_source\_poll\_for\_changes) | Cause codepipeline to poll regularly for source code changes instead of waiting for CloudWatch Events. This is not required with a Codestar connection and should be avoided unless Codestar and webhooks are unavailable. | `bool` | `false` | no |
 | <a name="input_cp_source_repo"></a> [cp\_source\_repo](#input\_cp\_source\_repo) | Name of repository to clone. | `string` | n/a | yes |
-| <a name="input_cp_tf_manual_approval"></a> [cp\_tf\_manual\_approval](#input\_cp\_tf\_manual\_approval) | List of environments for which the terraform pipeline requires manual approval prior to application stage. | `list(any)` | `[]` | no |
 | <a name="input_create"></a> [create](#input\_create) | Conditionally create resources. Affects nearly all resources. | `string` | `""` | no |
-| <a name="input_environment_names"></a> [environment\_names](#input\_environment\_names) | List of names of all the environments to create pipeline stages for. | `list(string)` | <pre>[<br>  "PRD"<br>]</pre> | no |
+| <a name="input_init_tfvars"></a> [init\_tfvars](#input\_init\_tfvars) | The path for the TFVars Init folder, this is the full relative path. I.E ./init-tfvars | `string` | `"./init-tfvars"` | no |
 | <a name="input_input_tags"></a> [input\_tags](#input\_input\_tags) | Map of tags to apply to all taggable resources. | `map(string)` | <pre>{<br>  "Provisioner": "Terraform"<br>}</pre> | no |
 | <a name="input_name"></a> [name](#input\_name) | Name to prepend to all resource names within module. | `string` | `"codepipline-module"` | no |
+| <a name="input_source_control"></a> [source\_control](#input\_source\_control) | Which source control is being used? | `string` | n/a | yes |
+| <a name="input_source_control_commit_paths"></a> [source\_control\_commit\_paths](#input\_source\_control\_commit\_paths) | Source Control URL Commit Paths Map | `map(map(string))` | <pre>{<br>  "BitBucket": {<br>    "path1": "https://bitbucket.org/",<br>    "path2": "commits"<br>  },<br>  "GitHub": {<br>    "path1": "https://github.com/",<br>    "path2": "commit"<br>  }<br>}</pre> | no |
 
 ## Outputs
 
@@ -211,15 +225,16 @@ A Codestar connection will be created in the "pending" state and must then be ma
 ## Example CodeStar Connection resource
 
 ```hcl
-resource "aws_codestarconnections_connection" "test_repo" { 
-  name = "test-cicd-connection" 
-  provider_type = "GitHub"
+resource "aws_codestarconnections_connection" "test_repo" {
+name = "test-cicd-connection"
+provider_type = "GitHub"
 }
 ```
 
 ## Contributors
 - Christopher Childress [chrischildresssg](https://github.com/chrischildresssg)
 - Ivan Casco [ivancasco-sg](https://github.com/ivancasco-sg)
+- Wesley Kirkland [wesleykirklandsg](https://github.com/wesleykirklandsg)
 
 Note, manual changes to the README will be overwritten when the documentation is updated. To update the documentation, run `terraform-docs -c .config/.terraform-docs.yml .`
 <!-- END_TF_DOCS -->

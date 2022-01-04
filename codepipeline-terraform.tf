@@ -1,6 +1,7 @@
 data "aws_kms_alias" "s3" {
   name = "alias/aws/s3"
 }
+
 resource "aws_codepipeline" "codepipeline_terraform" {
   count    = var.create ? 1 : 0
   name     = "${var.name}-cp-terraform"
@@ -21,54 +22,51 @@ resource "aws_codepipeline" "codepipeline_terraform" {
     },
   )
 
-  dynamic "stage" {
-    for_each = var.environment_names
-    content {
-      name = "Source"
+  stage {
+    name = "Source"
 
-      dynamic "action" {
-        for_each = var.cp_resource_bucket_name != "" ? [true] : []
-        content {
-          owner            = "AWS"
-          name             = "ArtifactsS3"
-          category         = "Source"
-          provider         = "S3"
-          version          = "1"
-          output_artifacts = ["source_output"]
-          configuration = {
-            PollForSourceChanges = var.cp_source_poll_for_changes
-            S3Bucket    = var.cp_resource_bucket_name
-            S3ObjectKey = var.cp_resource_bucket_key_name
-          }
+    dynamic "action" {
+      for_each = var.cp_resource_bucket_name != "" ? [true] : []
+      content {
+        owner            = "AWS"
+        name             = "ArtifactsS3"
+        category         = "Source"
+        provider         = "S3"
+        version          = "1"
+        output_artifacts = ["source_output"]
+        configuration = {
+          PollForSourceChanges = var.cp_source_poll_for_changes
+          S3Bucket    = var.cp_resource_bucket_name
+          S3ObjectKey = var.cp_resource_bucket_key_name
         }
       }
+    }
 
-      dynamic "action" {
-        for_each = var.cp_source_repo != "" ? [true] : []
-        content {
-          name             = "Source"
-          category         = "Source"
-          owner            = "AWS"
-          provider         = "CodeStarSourceConnection"
-          version          = "1"
-          output_artifacts = ["source_output"]
-          namespace        = "SourceVariables"
+    dynamic "action" {
+      for_each = var.cp_source_repo != "" ? [true] : []
+      content {
+        name             = "Source"
+        category         = "Source"
+        owner            = "AWS"
+        provider         = "CodeStarSourceConnection"
+        version          = "1"
+        output_artifacts = ["source_output"]
+        namespace        = "SourceVariables"
 
-          configuration = {
-            BranchName           = var.cp_source_branch
-            FullRepositoryId     = "${var.cp_source_owner}/${var.cp_source_repo}"
-            ConnectionArn        = var.cp_source_codestar_connection_arn
-            OutputArtifactFormat = "CODE_ZIP"
-          }
+        configuration = {
+          BranchName           = var.cp_source_branch
+          FullRepositoryId     = "${var.cp_source_owner}/${var.cp_source_repo}"
+          ConnectionArn        = var.cp_source_codestar_connection_arn
+          OutputArtifactFormat = "CODE_ZIP"
         }
       }
     }
   }
 
   dynamic "stage" {
-    for_each = var.environment_names
+    for_each = [for key, v in var.cb_accounts_map : key] # Output the key name as is and fix below
     content {
-      name = "${upper(stage.value)}-Plan-and-Apply"
+      name = "${upper(substr(stage.value, 4, -1))}-Plan-and-Apply"
 
       action {
         name             = "Plan"
@@ -76,8 +74,8 @@ resource "aws_codepipeline" "codepipeline_terraform" {
         owner            = "AWS"
         provider         = "CodeBuild"
         input_artifacts  = ["source_output"]
-        output_artifacts = ["${stage.value}_plan_output"]
-        namespace        = "${stage.value}_variables"
+        output_artifacts = ["${substr(stage.value, 4, -1)}_plan_output"]
+        namespace        = "${substr(stage.value, 4, -1)}_variables"
         version          = "1"
         run_order        = 1
 
@@ -88,12 +86,12 @@ resource "aws_codepipeline" "codepipeline_terraform" {
               {
                 name  = "TERRAFORM_ENVIRONMENT_NAME"
                 type  = "PLAINTEXT"
-                value = stage.value
+                value = "${substr(stage.value, 4, -1)}"
               },
               {
                 name  = "TERRAFORM_ASSUME_ROLE"
                 type  = "PLAINTEXT"
-                value = var.cb_iam_role
+                value = var.cb_accounts_map[stage.value]["iam_role"]
               },
               {
                 name  = "TERRAFORM_ACCOUNT_ID",
@@ -106,7 +104,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
       }
 
       dynamic "action" {
-        for_each = contains(var.cp_tf_manual_approval, stage.value) && var.cp_source_repo != "" ? [true] : []
+        for_each = var.cb_accounts_map[stage.value].manual_approval == true && var.cp_source_repo != "" ? [true] : []
         content {
           name     = "Approval"
           category = "Approval"
@@ -114,7 +112,8 @@ resource "aws_codepipeline" "codepipeline_terraform" {
           provider = "Manual"
           configuration = {
             CustomData         = "Please review the codebuild output and verify the changes. Commit ID: #{SourceVariables.CommitId}"
-            ExternalEntityLink = "https://github.com/${var.cp_source_owner}/${var.cp_source_repo}/commit/#{SourceVariables.CommitId}"
+            # This will take the key map from the inputs file and allow it to expressed later
+            ExternalEntityLink = "${var.source_control_commit_paths[var.source_control]["path1"]}/${var.cp_source_owner}/${var.cp_source_repo}/${var.source_control_commit_paths[var.source_control]["path2"]}/#{SourceVariables.CommitId}"
           }
           input_artifacts  = []
           output_artifacts = []
@@ -124,7 +123,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
       }
 
       dynamic "action" {
-        for_each = contains(var.cp_tf_manual_approval, stage.value) && var.cp_resource_bucket_name != "" ? [true] : []
+        for_each = var.cb_accounts_map[stage.value].manual_approval && var.cp_resource_bucket_name != "" ? [true] : []
         content {
           name     = "Approval"
           category = "Approval"
@@ -145,23 +144,23 @@ resource "aws_codepipeline" "codepipeline_terraform" {
         category = "Build"
         owner    = "AWS"
         provider = "CodeBuild"
-        input_artifacts = ["${stage.value}_plan_output"]
+        input_artifacts = ["${substr(stage.value, 4, -1)}_plan_output"]
         version         = "1"
         run_order       = 3
         configuration = {
           ProjectName   = join("", aws_codebuild_project.terraform_apply.*.name)
-          PrimarySource = "${stage.value}_plan_output"
+          PrimarySource = "${substr(stage.value, 4, -1)}_plan_output"
           EnvironmentVariables = jsonencode(
             [
               {
                 name  = "TERRAFORM_ENVIRONMENT_NAME"
                 type  = "PLAINTEXT"
-                value = stage.value
+                value = substr(stage.value, 4, -1)
               },
               {
                 name  = "TERRAFORM_ASSUME_ROLE"
                 type  = "PLAINTEXT"
-                value = stage.value
+                value = var.cb_accounts_map[stage.value]["iam_role"]
               },
               {
                 name  = "TERRAFORM_ACCOUNT_ID",
