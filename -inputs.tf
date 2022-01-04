@@ -150,11 +150,11 @@ variable "source_control_commit_paths" {
   type        = map(map(string))
   default = {
     GitHub = {
-      path1 = "https://github.com/"
+      path1 = "https://github.com"
       path2 = "commit"
     }
     BitBucket = {
-      path1 = "https://bitbucket.org/"
+      path1 = "https://bitbucket.org"
       path2 = "commits"
     }
   }
