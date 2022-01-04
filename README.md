@@ -41,20 +41,21 @@ module "terraform_pipeline" {
   cp_resource_bucket_key_name        = ""
   cp_source_poll_for_changes         = true
   
-  //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that
-  //We make an assumption that the right half of the environment name matches the environment name in the TF init and apply directorie
+  //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
+  //The underlying code requires the 3 digit prefix to work.
+  //We make an assumption that the right half of the environment name matches the environment name in the TF init and apply directory.
   cb_accounts_map = {
-    "01-dev" = {
-      account_id = "012345678901"
+    "001-dev" = {
+      account_id = "0012345678901"
       iam_role   = "iam-cicd"
       manual_approval = false
     }
-    "02-stg" = {
+    "002-stg" = {
       account_id = "123456789012"
       iam_role   = "iam-cicd"
       manual_approval = true
     }
-    "03-prd" = {
+    "003-prd" = {
       account_id = "234567890123"
       iam_role   = "iam-cicd"
       manual_approval = true
