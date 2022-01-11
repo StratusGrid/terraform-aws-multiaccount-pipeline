@@ -64,9 +64,9 @@ resource "aws_codepipeline" "codepipeline_terraform" {
   }
 
   dynamic "stage" {
-    for_each = [for key, v in var.cb_accounts_map : key] # Output the key name as is and fix below
+    for_each = {for k, v in var.cb_accounts_map: v.order => k} # Output the key name as is
     content {
-      name = "${upper(substr(stage.value, 4, -1))}-Plan-and-Apply"
+      name = "${upper(stage.value)}-Plan-and-Apply"
 
       action {
         name             = "Plan"
@@ -74,8 +74,8 @@ resource "aws_codepipeline" "codepipeline_terraform" {
         owner            = "AWS"
         provider         = "CodeBuild"
         input_artifacts  = ["source_output"]
-        output_artifacts = ["${substr(stage.value, 4, -1)}_plan_output"]
-        namespace        = "${substr(stage.value, 4, -1)}_variables"
+        output_artifacts = ["${stage.value}_plan_output"]
+        namespace        = "${stage.value}_variables"
         version          = "1"
         run_order        = 1
 
@@ -86,7 +86,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
               {
                 name  = "TERRAFORM_ENVIRONMENT_NAME"
                 type  = "PLAINTEXT"
-                value = "${substr(stage.value, 4, -1)}"
+                value = "${stage.value}"
               },
               {
                 name  = "TERRAFORM_ASSUME_ROLE"
@@ -144,18 +144,18 @@ resource "aws_codepipeline" "codepipeline_terraform" {
         category = "Build"
         owner    = "AWS"
         provider = "CodeBuild"
-        input_artifacts = ["${substr(stage.value, 4, -1)}_plan_output"]
+        input_artifacts = ["${stage.value}_plan_output"]
         version         = "1"
         run_order       = 3
         configuration = {
           ProjectName   = join("", aws_codebuild_project.terraform_apply.*.name)
-          PrimarySource = "${substr(stage.value, 4, -1)}_plan_output"
+          PrimarySource = "${stage.value}_plan_output"
           EnvironmentVariables = jsonencode(
             [
               {
                 name  = "TERRAFORM_ENVIRONMENT_NAME"
                 type  = "PLAINTEXT"
-                value = substr(stage.value, 4, -1)
+                value = stage.value
               },
               {
                 name  = "TERRAFORM_ASSUME_ROLE"
