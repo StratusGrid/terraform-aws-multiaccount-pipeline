@@ -13,7 +13,7 @@ In order for the CodePipeline's CodeBuild stages to properly function in each ac
 An example policy to this is located [here](IAM-POLICY.md).
 ---
 
-## Example with S3 bucket source
+## Example with Git Source
 
 ```hcl
 module "terraform_pipeline" {
@@ -42,23 +42,25 @@ module "terraform_pipeline" {
   cp_source_poll_for_changes         = true
   
   //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
-  //The underlying code requires the 3 digit prefix to work.
-  //We make an assumption that the right half of the environment name matches the environment name in the TF init and apply directory.
+  //We make an assumption that the environment name matches the environment name in the TF init and apply directories.
   cb_accounts_map = {
-    "001-dev" = {
+    "dev" = {
       account_id = "0012345678901"
       iam_role   = "iam-cicd"
       manual_approval = false
+      order = 1
     }
-    "002-stg" = {
+    "stg" = {
       account_id = "123456789012"
       iam_role   = "iam-cicd"
       manual_approval = true
+      order = 2
     }
-    "003-prd" = {
+    "prd" = {
       account_id = "234567890123"
       iam_role   = "iam-cicd"
       manual_approval = true
+      order = 3
     }
   }
 }
@@ -185,7 +187,7 @@ POLICY
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_apply_tfvars"></a> [apply\_tfvars](#input\_apply\_tfvars) | The path for the TFVars Apply folder, this is the full relative path | `string` | `"./apply-tfvars"` | no |
-| <a name="input_cb_accounts_map"></a> [cb\_accounts\_map](#input\_cb\_accounts\_map) | Map of environments, IAM assumption roles, AWS accounts to create pipeline stages for.cb\_accounts\_map = {dev = {account\_id = 123456789012; iam\_role = "stringrolename"}} | <pre>map(object(<br>    {<br>      account_id      = string<br>      iam_role        = string<br>      manual_approval = bool<br>    }<br>  ))</pre> | n/a | yes |
+| <a name="input_cb_accounts_map"></a> [cb\_accounts\_map](#input\_cb\_accounts\_map) | Map of environments, IAM assumption roles, AWS accounts to create pipeline stages for.cb\_accounts\_map = {dev = {account\_id = 123456789012; iam\_role = "stringrolename"}} | <pre>map(object(<br>    {<br>      account_id      = string<br>      iam_role        = string<br>      manual_approval = bool<br>      order           = number<br>    }<br>  ))</pre> | n/a | yes |
 | <a name="input_cb_apply_timeout"></a> [cb\_apply\_timeout](#input\_cb\_apply\_timeout) | Maximum time in minutes to wait while applying terraform before killing the build. | `number` | `60` | no |
 | <a name="input_cb_env_compute_type"></a> [cb\_env\_compute\_type](#input\_cb\_env\_compute\_type) | Size of instance to run Codebuild within. Valid Values are BUILD\_GENERAL1\_SMALL, BUILD\_GENERAL1\_MEDIUM, BUILD\_GENERAL1\_LARGE, BUILD\_GENERAL1\_2XLARGE. | `string` | `"BUILD_GENERAL1_SMALL"` | no |
 | <a name="input_cb_env_image"></a> [cb\_env\_image](#input\_cb\_env\_image) | Identifies the Docker image to use for this build project. Available images documented in [the official AWS Codebuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html). | `string` | `"aws/codebuild/standard:5.0"` | no |
@@ -208,7 +210,7 @@ POLICY
 | <a name="input_input_tags"></a> [input\_tags](#input\_input\_tags) | Map of tags to apply to all taggable resources. | `map(string)` | <pre>{<br>  "Provisioner": "Terraform"<br>}</pre> | no |
 | <a name="input_name"></a> [name](#input\_name) | Name to prepend to all resource names within module. | `string` | `"codepipline-module"` | no |
 | <a name="input_source_control"></a> [source\_control](#input\_source\_control) | Which source control is being used? | `string` | n/a | yes |
-| <a name="input_source_control_commit_paths"></a> [source\_control\_commit\_paths](#input\_source\_control\_commit\_paths) | Source Control URL Commit Paths Map | `map(map(string))` | <pre>{<br>  "BitBucket": {<br>    "path1": "https://bitbucket.org/",<br>    "path2": "commits"<br>  },<br>  "GitHub": {<br>    "path1": "https://github.com/",<br>    "path2": "commit"<br>  }<br>}</pre> | no |
+| <a name="input_source_control_commit_paths"></a> [source\_control\_commit\_paths](#input\_source\_control\_commit\_paths) | Source Control URL Commit Paths Map | `map(map(string))` | <pre>{<br>  "BitBucket": {<br>    "path1": "https://bitbucket.org",<br>    "path2": "commits"<br>  },<br>  "GitHub": {<br>    "path1": "https://github.com",<br>    "path2": "commit"<br>  }<br>}</pre> | no |
 
 ## Outputs
 
