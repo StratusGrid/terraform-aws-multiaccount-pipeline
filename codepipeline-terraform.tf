@@ -64,7 +64,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
   }
 
   dynamic "stage" {
-    for_each = {for k, v in var.cb_accounts_map: v.order => k} # Output the key name as is
+    for_each = values({for k, v in var.cb_accounts_map: v.order => k}) # Output the key name as is
     content {
       name = "${upper(stage.value)}-Plan-and-Apply"
 
