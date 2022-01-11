@@ -3,3 +3,6 @@ tags
 
 # IDE temp files
 **/.idea/*
+
+
+**.DS_Store**
