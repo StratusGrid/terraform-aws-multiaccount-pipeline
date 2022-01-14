@@ -19,10 +19,10 @@ content: |-
   An example policy to this is located [here](IAM-POLICY.md).
   ---
 
-  ## Example with S3 bucket source
+  ## Example with Git Source
 
   ```hcl
-  {{ include "examples/s3_source/main.tf" }}
+  {{ include "examples/git.tf" }}
   ```
 
   ---

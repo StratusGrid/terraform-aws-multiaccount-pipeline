@@ -4,6 +4,7 @@ variable "cb_accounts_map" {
       account_id      = string
       iam_role        = string
       manual_approval = bool
+      order           = number
     }
   ))
   description = "Map of environments, IAM assumption roles, AWS accounts to create pipeline stages for.cb_accounts_map = {dev = {account_id = 123456789012; iam_role = \"stringrolename\"}}"
