@@ -170,9 +170,11 @@ variable "slack_notification_for_approval" {
 variable "slack_workspace_id" {
   description = "The workspace ID for slack account to be used for notifications"
   type        = string
+  default     = "T01T01ABC"
 }
 
 variable "slack_channel_id" {
   description = "The chanel ID for slack workspace where notifications are sent"
   type        = string
+  default     = "F123CCAB1A"
 }
