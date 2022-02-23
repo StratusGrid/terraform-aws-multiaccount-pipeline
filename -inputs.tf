@@ -1,5 +1,5 @@
 variable "cb_accounts_map" {
-  type        = map(object(
+  type = map(object(
     {
       account_id      = string
       iam_role        = string
@@ -61,17 +61,17 @@ variable "codebuild_iam_policy" {
 }
 
 variable "cp_resource_bucket_arn" {
-  type = string
+  type        = string
   description = "ARN of the S3 bucket where the source artifacts exist."
 }
 
 variable "cp_resource_bucket_name" {
-  type = string
+  type        = string
   description = "Name of the S3 bucket where the source artifacts exist."
 }
 
 variable "cp_resource_bucket_key_name" {
-  type = string
+  type        = string
   description = "Prefix and key of the source artifact file. For instance, `source/master.zip`."
 }
 
@@ -83,7 +83,7 @@ variable "cp_source_branch" {
 variable "cp_source_codestar_connection_arn" {
   type        = string
   description = "ARN of Codestar of GitHub/Bitbucket/etc connection which grants access to source repository."
-  default = ""
+  default     = ""
 }
 
 variable "cp_source_owner" {
@@ -140,7 +140,7 @@ variable "source_control" {
   description = "Which source control is being used?"
   type        = string
   validation {
-    condition     = contains(["GitHub","BitBucket"], var.source_control)
+    condition     = contains(["GitHub", "BitBucket"], var.source_control)
     error_message = "A valid source control provider hasn't been selected."
   }
 }
@@ -159,4 +159,22 @@ variable "source_control_commit_paths" {
       path2 = "commits"
     }
   }
+}
+
+variable "slack_notification_for_approval" {
+  type        = bool
+  default     = false
+  description = "When true - AWS chatbot service is created along with a lambda function to approve codepipeline manual approval stage"
+}
+
+variable "slack_workspace_id" {
+  description = "The workspace ID for slack account to be used for notifications"
+  type        = string
+  default     = "T01T01ABC"
+}
+
+variable "slack_channel_id" {
+  description = "The chanel ID for slack workspace where notifications are sent"
+  type        = string
+  default     = "F123CCAB1A"
 }

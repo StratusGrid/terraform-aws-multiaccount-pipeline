@@ -9,14 +9,24 @@ content: |-
 
   [StratusGrid/terraform-aws-multiaccount-pipeline](https://github.com/StratusGrid/terraform-aws-multiaccount-pipeline)
 
-  ### Terraform module to create a CICD pipeline for Terraform which can execute from a Production or CICD account across multiple sub-accounts which each contain a specific environment.
+  ## Terraform module to create a CICD pipeline for Terraform which can execute from a Production or CICD account across multiple sub-accounts which each contain a specific environment.
 
   ---
 
   ## Cross-Account Role Assumption
+  
   In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume.  Thus, you should create an IAM role in each account with the same name and [restricted ADMIN rights](https://github.com/StratusGrid/terraform-aws-iam-group-restricted-admin), establish trust relationships to allow the CICD account to assume that role, and then provide the CodeBuild execution roles with STS Assume role rights for that role. This role's name is defined in the cb_accounts_map map parameter. The listed role works assuming you remove the sts:AssumeRole deny.
 
   An example policy to this is located [here](IAM-POLICY.md).
+
+  ## Slack and AWS ChatBot Integration
+
+  This module comes with a native AWS Chatbot integration hook, to enable this follow the below steps,
+  1. Simply set `slack_notification_for_approval` to true and fill out your Workspace ID and Channel ID.
+  2. Install the [AWS Chatbot](https://stratusgrid.slack.com/apps/A6L22LZNH-aws-chatbot) app into the Slack Workspace and the channel if it's a private channel.
+  3. Navigate to the AWS Chatbot Service in the AWS Console and authorize the Slack Workspace.
+  4. It may fail to deploy the first time due to an underlying AWS config replication, if it does wait up to 15 minutes as the error message states.
+
   ---
 
   ## Example with Git Source
@@ -54,6 +64,7 @@ content: |-
   - Christopher Childress [chrischildresssg](https://github.com/chrischildresssg)
   - Ivan Casco [ivancasco-sg](https://github.com/ivancasco-sg)
   - Wesley Kirkland [wesleykirklandsg](https://github.com/wesleykirklandsg)
+  - Max Rahimi [maxr-sg](https://github.com/maxr-sg)
 
   Note, manual changes to the README will be overwritten when the documentation is updated. To update the documentation, run `terraform-docs -c .config/.terraform-docs.yml .`
 

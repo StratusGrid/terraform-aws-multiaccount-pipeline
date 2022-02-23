@@ -3,7 +3,7 @@ module "terraform_pipeline" {
   version = "~> 3.0.0"
 
   create                             = true
-  name                               = "${var.name_prefix}-utils${local.name_suffix}"
+  name                               = "${var.name_prefix}-utils"
   codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
   cb_env_image                       = "aws/codebuild/standard:5.0"
@@ -22,6 +22,11 @@ module "terraform_pipeline" {
   cp_resource_bucket_name            = ""
   cp_resource_bucket_key_name        = ""
   cp_source_poll_for_changes         = true
+
+  //This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
+  slack_notification_for_approval    = true
+  slack_workspace_id                 = ""
+  slack_channel_id                   = ""
   
   //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
   //We make an assumption that the environment name matches the environment name in the TF init and apply directories.
