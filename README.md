@@ -15,7 +15,10 @@ An example policy to this is located [here](IAM-POLICY.md).
 
 ## Slack and AWS ChatBot Integration
 
-This module comes with a native AWS Chatbot integration hook, to enable this simply set `slack_notification_for_approval` to true and fill out your Workspace ID and Channel ID. From there you need to install the [AWS Chatbot](https://stratusgrid.slack.com/apps/A6L22LZNH-aws-chatbot) app into the Slack Workspace and the channel if it's a private channel.
+This module comes with a native AWS Chatbot integration hook, to enable this follow the below steps,
+1. Simply set `slack_notification_for_approval` to true and fill out your Workspace ID and Channel ID.
+2. Install the [AWS Chatbot](https://stratusgrid.slack.com/apps/A6L22LZNH-aws-chatbot) app into the Slack Workspace and the channel if it's a private channel.
+3. Navigate to the AWS Chatbot Service in the AWS Console and authorize the Slack Workspace.
 
 ---
 
