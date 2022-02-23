@@ -27,7 +27,7 @@ module "terraform_pipeline" {
   version = "~> 3.0.0"
 
   create                             = true
-  name                               = "${var.name_prefix}-utils${local.name_suffix}"
+  name                               = "${var.name_prefix}-utils"
   codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
   cb_env_image                       = "aws/codebuild/standard:5.0"
