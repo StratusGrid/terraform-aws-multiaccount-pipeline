@@ -1,7 +1,7 @@
 ############## IAM Roles #######################
 resource "aws_iam_role" "chatbot" {
   count = var.slack_notification_for_approval == true ? 1 : 0
-  name  = "${var.name}-chatbot-role"
+  name  = "${var.name}-chatbot-role${local.name_suffix}"
 
   assume_role_policy = <<EOF
 {
@@ -76,7 +76,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
 
 resource "aws_iam_policy" "chatbot_policy" {
   count       = var.slack_notification_for_approval == true ? 1 : 0
-  name        = "${var.name}-chatbot-policy"
+  name        = "${var.name}-chatbot-policy${local.name_suffix}"
   path        = "/"
   description = "Policy for AWS Chatbot Service"
   policy      = data.aws_iam_policy_document.chatbot_policy_doc.json
@@ -92,7 +92,7 @@ resource "aws_iam_role_policy_attachment" "chatbot_policy_attachment" {
 ################## Chatbot SNS Topic ###################################
 resource "aws_sns_topic" "chatbot_sns" {
   count = var.slack_notification_for_approval == true ? 1 : 0
-  name  = "${var.name}-SNS-Topic"
+  name  = "${var.name}-SNS-Topic${local.name_suffix}"
 
   delivery_policy = <<EOF
   {
@@ -107,7 +107,6 @@ resource "aws_sns_topic" "chatbot_sns" {
         "backoffFunction": "linear"
       },
       "disableSubscriptionOverrides": false
-
     }
   }
 EOF
@@ -134,7 +133,7 @@ module "chatbot_slack_configuration" {
   count      = var.slack_notification_for_approval == true ? 1 : 0
   depends_on = [aws_sns_topic.chatbot_sns]
 
-  configuration_name = "${var.name}-Chatbot-Service"
+  configuration_name = "${var.name}-Chatbot-Service${local.name_suffix}"
   iam_role_arn       = aws_iam_role.chatbot[0].arn
   slack_channel_id   = var.slack_channel_id
   slack_workspace_id = local.chatbot_slack_workspace_id
@@ -167,7 +166,7 @@ module "lambda_function" {
   tags = merge(
     local.common_tags,
     {
-      "Name" = "${var.name}-codepipeline-approval"
+      "Name" = "${var.name}-codepipeline-approval${local.name_suffix}"
     },
   )
 
@@ -195,7 +194,7 @@ resource "aws_codestarnotifications_notification_rule" "plan_stats" {
 
   ]
 
-  name     = "${var.name}-codebuild-tf-plan-rule"
+  name     = "${var.name}-codebuild-tf-plan-rule${local.name_suffix}"
   resource = aws_codebuild_project.terraform_plan[0].arn
 
   target {
@@ -211,10 +210,9 @@ resource "aws_codestarnotifications_notification_rule" "apply_stats" {
     "codebuild-project-build-state-succeeded",
     "codebuild-project-build-state-failed",
     "codebuild-project-build-state-in-progress"
-
   ]
 
-  name     = "${var.name}-codebuild-tf-apply-rule"
+  name     = "${var.name}-codebuild-tf-apply-rule${local.name_suffix}"
   resource = aws_codebuild_project.terraform_apply[0].arn
 
   target {
@@ -228,10 +226,9 @@ resource "aws_codestarnotifications_notification_rule" "approval_needed" {
   detail_type = "FULL"
   event_type_ids = [
     "codepipeline-pipeline-manual-approval-needed",
-
   ]
 
-  name     = "${var.name}-codepipeline-manual-approval-rule"
+  name     = "${var.name}-codepipeline-manual-approval-rule${local.name_suffix}"
   resource = aws_codepipeline.codepipeline_terraform[0].arn
 
   target {
@@ -239,4 +236,3 @@ resource "aws_codestarnotifications_notification_rule" "approval_needed" {
     type    = "AWSChatbotSlack"
   }
 }
-
