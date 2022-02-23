@@ -18,7 +18,7 @@ An example policy to this is located [here](IAM-POLICY.md).
 ```hcl
 module "terraform_pipeline" {
   source  = "StratusGrid/multiaccount-pipeline/aws"
-  version = "~> 2.0.0"
+  version = "~> 3.0.0"
 
   create                             = true
   name                               = "${var.name_prefix}-utils${local.name_suffix}"
@@ -180,12 +180,20 @@ POLICY
 | [aws_codebuild_project.terraform_apply](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codebuild_project) | resource |
 | [aws_codebuild_project.terraform_plan](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codebuild_project) | resource |
 | [aws_codepipeline.codepipeline_terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codepipeline) | resource |
+| [aws_codestarnotifications_notification_rule.apply_stats](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarnotifications_notification_rule) | resource |
+| [aws_codestarnotifications_notification_rule.approval_needed](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarnotifications_notification_rule) | resource |
+| [aws_codestarnotifications_notification_rule.plan_stats](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarnotifications_notification_rule) | resource |
+| [aws_iam_policy.chatbot_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_role.chatbot](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.codebuild_terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.codepipeline_role_terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy.codebuild_policy_terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.codepipeline_policy_terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy_attachment.chatbot_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_s3_bucket.pipeline_resources_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket_public_access_block.pipeline_resources_bucket_pab](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_sns_topic.chatbot_sns](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
+| [aws_sns_topic_policy.access_from_chatbot](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_policy) | resource |
 
 ## Inputs
 
@@ -214,6 +222,9 @@ POLICY
 | <a name="input_init_tfvars"></a> [init\_tfvars](#input\_init\_tfvars) | The path for the TFVars Init folder, this is the full relative path. I.E ./init-tfvars | `string` | `"./init-tfvars"` | no |
 | <a name="input_input_tags"></a> [input\_tags](#input\_input\_tags) | Map of tags to apply to all taggable resources. | `map(string)` | <pre>{<br>  "Provisioner": "Terraform"<br>}</pre> | no |
 | <a name="input_name"></a> [name](#input\_name) | Name to prepend to all resource names within module. | `string` | `"codepipline-module"` | no |
+| <a name="input_slack_channel_id"></a> [slack\_channel\_id](#input\_slack\_channel\_id) | The chanel ID for slack workspace where notifications are sent | `string` | n/a | yes |
+| <a name="input_slack_notification_for_approval"></a> [slack\_notification\_for\_approval](#input\_slack\_notification\_for\_approval) | When true - AWS chatbot service is created along with a lambda function to approve codepipeline manual approval stage | `bool` | `false` | no |
+| <a name="input_slack_workspace_id"></a> [slack\_workspace\_id](#input\_slack\_workspace\_id) | The workspace ID for slack account to be used for notifications | `string` | n/a | yes |
 | <a name="input_source_control"></a> [source\_control](#input\_source\_control) | Which source control is being used? | `string` | n/a | yes |
 | <a name="input_source_control_commit_paths"></a> [source\_control\_commit\_paths](#input\_source\_control\_commit\_paths) | Source Control URL Commit Paths Map | `map(map(string))` | <pre>{<br>  "BitBucket": {<br>    "path1": "https://bitbucket.org",<br>    "path2": "commits"<br>  },<br>  "GitHub": {<br>    "path1": "https://github.com",<br>    "path2": "commit"<br>  }<br>}</pre> | no |
 
