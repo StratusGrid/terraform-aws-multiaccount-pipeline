@@ -75,6 +75,12 @@ variable "cp_resource_bucket_key_name" {
   description = "Prefix and key of the source artifact file. For instance, `source/master.zip`."
 }
 
+variable "cp_resource_bucket_kms_key_arn" {
+  description = "ARN of customer-manged KMS key used to encrypt objects in the source/resource bucket. Optional."
+  type        = string
+  default     = ""
+}
+
 variable "cp_source_branch" {
   type        = string
   description = "Repository branch to check out. Usually `master` or `main`."
