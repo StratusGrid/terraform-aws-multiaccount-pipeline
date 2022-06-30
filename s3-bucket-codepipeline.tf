@@ -2,17 +2,31 @@
 resource "aws_s3_bucket" "pipeline_resources_bucket" {
   bucket = "${var.name}-pipeline-resources"
 
-  versioning {
-    enabled = true
-  }
-
   lifecycle {
     prevent_destroy = false
   }
 
-  lifecycle_rule {
+  tags = merge(local.common_tags, {})
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "pipeline_resources_bucket" {
+  bucket = aws_s3_bucket.pipeline_resources_bucket.id
+
+  rule {
+    bucket_key_enabled = false
+
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "pipeline_resources_bucket" {
+  bucket = aws_s3_bucket.pipeline_resources_bucket.id
+
+  rule {
     id      = "artifacts"
-    enabled = true
+    status = "Enabled"
 
     transition {
       days          = 30
@@ -23,16 +37,13 @@ resource "aws_s3_bucket" "pipeline_resources_bucket" {
       days = 90
     }
   }
+}
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
+resource "aws_s3_bucket_versioning" "pipeline_resources_bucket" {
+  bucket = aws_s3_bucket.pipeline_resources_bucket.id
+  versioning_configuration {
+    status = "Enabled"
   }
-
-  tags = merge(local.common_tags, {})
 }
 
 resource "aws_s3_bucket_public_access_block" "pipeline_resources_bucket_pab" {
