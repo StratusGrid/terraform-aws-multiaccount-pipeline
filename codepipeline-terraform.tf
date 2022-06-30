@@ -36,8 +36,8 @@ resource "aws_codepipeline" "codepipeline_terraform" {
         output_artifacts = ["source_output"]
         configuration = {
           PollForSourceChanges = var.cp_source_poll_for_changes
-          S3Bucket    = var.cp_resource_bucket_name
-          S3ObjectKey = var.cp_resource_bucket_key_name
+          S3Bucket             = var.cp_resource_bucket_name
+          S3ObjectKey          = var.cp_resource_bucket_key_name
         }
       }
     }
@@ -64,7 +64,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
   }
 
   dynamic "stage" {
-    for_each = values({for k, v in var.cb_accounts_map: v.order => k}) # Output the key name as is
+    for_each = values({ for k, v in var.cb_accounts_map : v.order => k }) # Output the key name as is
     content {
       name = "${upper(stage.value)}-Plan-and-Apply"
 
@@ -111,7 +111,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
           owner    = "AWS"
           provider = "Manual"
           configuration = {
-            CustomData         = "Please review the codebuild output and verify the changes. Commit ID: #{SourceVariables.CommitId}"
+            CustomData = "Please review the codebuild output and verify the changes. Commit ID: #{SourceVariables.CommitId}"
             # This will take the key map from the inputs file and allow it to expressed later
             ExternalEntityLink = "${var.source_control_commit_paths[var.source_control]["path1"]}/${var.cp_source_owner}/${var.cp_source_repo}/${var.source_control_commit_paths[var.source_control]["path2"]}/#{SourceVariables.CommitId}"
           }
@@ -130,7 +130,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
           owner    = "AWS"
           provider = "Manual"
           configuration = {
-            CustomData         = "Please review the codebuild output and verify the changes."
+            CustomData = "Please review the codebuild output and verify the changes."
           }
           input_artifacts  = []
           output_artifacts = []
@@ -140,10 +140,10 @@ resource "aws_codepipeline" "codepipeline_terraform" {
       }
 
       action {
-        name     = "Apply"
-        category = "Build"
-        owner    = "AWS"
-        provider = "CodeBuild"
+        name            = "Apply"
+        category        = "Build"
+        owner           = "AWS"
+        provider        = "CodeBuild"
         input_artifacts = ["${stage.value}_plan_output"]
         version         = "1"
         run_order       = 3

@@ -25,7 +25,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "pipeline_resources_bucket" {
   bucket = aws_s3_bucket.pipeline_resources_bucket.id
 
   rule {
-    id      = "artifacts"
+    id     = "artifacts"
     status = "Enabled"
 
     transition {

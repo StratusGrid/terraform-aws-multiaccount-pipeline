@@ -126,7 +126,7 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
   }
 
   dynamic "statement" {
-    for_each  = var.cp_resource_bucket_kms_key_arn != "" ? [true] : []
+    for_each = var.cp_resource_bucket_kms_key_arn != "" ? [true] : []
     content {
       sid = "CustomerKMSAccess"
 
