@@ -125,6 +125,25 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
     ]
   }
 
+  dynamic "statement" {
+    for_each = var.cp_resource_bucket_kms_key_arn != "" ? [true] : []
+    content {
+      sid = "CustomerKMSAccess"
+
+      actions = [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+
+      resources = [
+        var.cp_resource_bucket_kms_key_arn
+      ]
+    }
+  }
+
   statement {
     sid = "CodeDeployAccess"
 

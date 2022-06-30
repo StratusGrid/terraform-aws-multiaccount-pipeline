@@ -181,7 +181,7 @@ POLICY
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.55 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.12 |
 
 ## Resources
 
@@ -201,7 +201,10 @@ POLICY
 | [aws_iam_role_policy.codepipeline_policy_terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy_attachment.chatbot_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_s3_bucket.pipeline_resources_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_lifecycle_configuration.pipeline_resources_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration) | resource |
 | [aws_s3_bucket_public_access_block.pipeline_resources_bucket_pab](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_s3_bucket_server_side_encryption_configuration.pipeline_resources_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
+| [aws_s3_bucket_versioning.pipeline_resources_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
 | [aws_sns_topic.chatbot_sns](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
 | [aws_sns_topic_policy.access_from_chatbot](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_policy) | resource |
 
@@ -222,6 +225,7 @@ POLICY
 | <a name="input_codebuild_iam_policy"></a> [codebuild\_iam\_policy](#input\_codebuild\_iam\_policy) | JSON string defining the initial/base codebuild IAM policy (must be passed in from caller). | `string` | n/a | yes |
 | <a name="input_cp_resource_bucket_arn"></a> [cp\_resource\_bucket\_arn](#input\_cp\_resource\_bucket\_arn) | ARN of the S3 bucket where the source artifacts exist. | `string` | n/a | yes |
 | <a name="input_cp_resource_bucket_key_name"></a> [cp\_resource\_bucket\_key\_name](#input\_cp\_resource\_bucket\_key\_name) | Prefix and key of the source artifact file. For instance, `source/master.zip`. | `string` | n/a | yes |
+| <a name="input_cp_resource_bucket_kms_key_arn"></a> [cp\_resource\_bucket\_kms\_key\_arn](#input\_cp\_resource\_bucket\_kms\_key\_arn) | ARN of customer-manged KMS key used to encrypt objects in the source/resource bucket. Optional. | `string` | `""` | no |
 | <a name="input_cp_resource_bucket_name"></a> [cp\_resource\_bucket\_name](#input\_cp\_resource\_bucket\_name) | Name of the S3 bucket where the source artifacts exist. | `string` | n/a | yes |
 | <a name="input_cp_source_branch"></a> [cp\_source\_branch](#input\_cp\_source\_branch) | Repository branch to check out. Usually `master` or `main`. | `string` | n/a | yes |
 | <a name="input_cp_source_codestar_connection_arn"></a> [cp\_source\_codestar\_connection\_arn](#input\_cp\_source\_codestar\_connection\_arn) | ARN of Codestar of GitHub/Bitbucket/etc connection which grants access to source repository. | `string` | `""` | no |
