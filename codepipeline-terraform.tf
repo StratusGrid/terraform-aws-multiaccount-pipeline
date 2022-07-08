@@ -63,6 +63,33 @@ resource "aws_codepipeline" "codepipeline_terraform" {
     }
   }
 
+    stage {
+    name = "Test"
+
+    action {
+      name             = "Validation"
+      category         = "Build"
+      owner            = "AWS"
+      provider         = "CodeBuild"
+      input_artifacts  = ["source_output"]
+      output_artifacts = []
+      version          = "1"
+
+      configuration = {
+        ProjectName = join("", aws_codebuild_project.terraform_validate.*.name)
+        EnvironmentVariables = jsonencode(
+            [
+              {
+                name  = "GITHUB_TOKEN"
+                type  = "PLAINTEXT"
+                value = "${var.cb_github_token}"
+              }
+            ]
+          )
+      }
+    }
+  }
+
   dynamic "stage" {
     for_each = values({ for k, v in var.cb_accounts_map : v.order => k }) # Output the key name as is
     content {

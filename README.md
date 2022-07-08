@@ -189,6 +189,7 @@ POLICY
 |------|------|
 | [aws_codebuild_project.terraform_apply](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codebuild_project) | resource |
 | [aws_codebuild_project.terraform_plan](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codebuild_project) | resource |
+| [aws_codebuild_project.terraform_validate](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codebuild_project) | resource |
 | [aws_codepipeline.codepipeline_terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codepipeline) | resource |
 | [aws_codestarnotifications_notification_rule.apply_stats](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarnotifications_notification_rule) | resource |
 | [aws_codestarnotifications_notification_rule.approval_needed](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarnotifications_notification_rule) | resource |
@@ -220,6 +221,7 @@ POLICY
 | <a name="input_cb_env_image_pull_credentials_type"></a> [cb\_env\_image\_pull\_credentials\_type](#input\_cb\_env\_image\_pull\_credentials\_type) | The type of credentials AWS CodeBuild uses to pull images in your build. There are two valid values described in [the ProjectEnvironment documentation](https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html). | `string` | `"CODEBUILD"` | no |
 | <a name="input_cb_env_name"></a> [cb\_env\_name](#input\_cb\_env\_name) | Should be referenced from env\_name of calling terraform module. | `string` | n/a | yes |
 | <a name="input_cb_env_type"></a> [cb\_env\_type](#input\_cb\_env\_type) | Codebuild Environment to use for stages in the pipeline. Valid Values are documented at [the ProjectEnvironment documentation](https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectEnvironment.html). | `string` | `"LINUX_CONTAINER"` | no |
+| <a name="input_cb_github_token"></a> [cb\_github\_token](#input\_cb\_github\_token) | GitHub token to use tflint plugins. | `string` | n/a | yes |
 | <a name="input_cb_plan_timeout"></a> [cb\_plan\_timeout](#input\_cb\_plan\_timeout) | Maximum time in minutes to wait while generating terraform plan before killing the build. | `number` | `15` | no |
 | <a name="input_cb_tf_version"></a> [cb\_tf\_version](#input\_cb\_tf\_version) | Version of terraform to download and install. Must match version scheme used for URL creation on terraform site. | `string` | n/a | yes |
 | <a name="input_codebuild_iam_policy"></a> [codebuild\_iam\_policy](#input\_codebuild\_iam\_policy) | JSON string defining the initial/base codebuild IAM policy (must be passed in from caller). | `string` | n/a | yes |

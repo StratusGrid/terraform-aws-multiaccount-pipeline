@@ -55,6 +55,12 @@ variable "cb_tf_version" {
   description = "Version of terraform to download and install. Must match version scheme used for URL creation on terraform site."
 }
 
+variable "cb_github_token" {
+  type        = string
+  sensitive = true
+  description = "GitHub token to install tflint plugins."
+}
+
 variable "codebuild_iam_policy" {
   type        = string
   description = "JSON string defining the initial/base codebuild IAM policy (must be passed in from caller)."
