@@ -74,6 +74,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
       input_artifacts  = ["source_output"]
       output_artifacts = []
       version          = "1"
+      run_order        = 1
 
       configuration = {
         ProjectName = join("", aws_codebuild_project.terraform_validate.*.name)
@@ -86,6 +87,32 @@ resource "aws_codepipeline" "codepipeline_terraform" {
               }
             ]
           )
+      }
+    }
+
+    dynamic "action" {
+      for_each = values({ for k, v in var.cb_accounts_map : v.order => k })
+      content {
+        name             = "${upper(action.value)}-Regula"
+        category         = "Build"
+        owner            = "AWS"
+        provider         = "CodeBuild"
+        input_artifacts  = ["source_output"]
+        output_artifacts = []
+        version          = "1"
+        run_order        = 2
+        configuration = {
+          ProjectName = join("", aws_codebuild_project.terraform_regula.*.name)
+          EnvironmentVariables = jsonencode(
+              [
+                {
+                  name  = "TERRAFORM_ENVIRONMENT_NAME"
+                  type  = "PLAINTEXT"
+                  value = "${action.value}"
+                }
+              ]
+            )
+        }
       }
     }
   }

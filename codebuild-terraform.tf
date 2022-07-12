@@ -1,8 +1,8 @@
 resource "aws_codebuild_project" "terraform_validate" {
   name          = "${var.name}-tf-validate"
   count         = var.create ? 1 : 0
-  description   = "terraform validate project"
-  build_timeout = var.cb_plan_timeout
+  description   = "Terraform validate project"
+  build_timeout = var.cb_validate_timeout
   service_role  = join("", aws_iam_role.codebuild_terraform.*.arn)
 
   environment {
@@ -46,6 +46,65 @@ phases:
     commands:
       - echo "terraform validate completed on `date`"
       - echo "tflint completed on `date`"
+BUILDSPEC
+  }
+  tags = merge(
+    local.common_tags,
+    {
+      "Name" = "${var.name}-tf-plan"
+    },
+  )
+}
+
+resource "aws_codebuild_project" "terraform_regula" {
+  name          = "${var.name}-tf-regula"
+  count         = var.create ? 1 : 0
+  description   = "Terraform Regula OPA project"
+  build_timeout = var.cb_regula_timeout
+  service_role  = join("", aws_iam_role.codebuild_terraform.*.arn)
+
+  environment {
+    compute_type                = var.cb_env_compute_type
+    image                       = var.cb_env_image
+    type                        = var.cb_env_type
+    image_pull_credentials_type = var.cb_env_image_pull_credentials_type
+
+    environment_variable {
+      name  = "TERRAFORM_VERSION"
+      value = var.cb_tf_version
+    }
+  }
+  artifacts {
+    type                = "CODEPIPELINE"
+    artifact_identifier = "regula_output"
+  }
+  source {
+    type      = "CODEPIPELINE" # TODO: variabilize role name.
+    buildspec = <<BUILDSPEC
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing all dependencies...
+      - wget -q https://releases.hashicorp.com/terraform/$${TERRAFORM_VERSION}/terraform_$${TERRAFORM_VERSION}_linux_amd64.zip
+      - unzip ./terraform_$${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/
+      - wget -q https://github.com/fugue/regula/releases/download/v2.8.0/regula_2.8.0_Linux_x86_64.tar.gz
+      - tar -xvf regula_2.8.0_Linux_x86_64.tar.gz regula
+      - mv ./regula /usr/local/bin/
+
+  build:
+    commands:
+      - echo Terraform environment name $${TERRAFORM_ENVIRONMENT_NAME}
+      - cd "$CODEBUILD_SRC_DIR"
+      - terraform init
+      - terraform plan -var-file=./apply-tfvars/$${TERRAFORM_ENVIRONMENT_NAME}.tfvars -refresh=false -out=$${TERRAFORM_ENVIRONMENT_NAME}-plan.tfplan
+      - terraform show -json $${TERRAFORM_ENVIRONMENT_NAME}-plan.tfplan > $${TERRAFORM_ENVIRONMENT_NAME}-plan.json
+      - regula run $${TERRAFORM_ENVIRONMENT_NAME}-plan.json
+
+  post_build:
+    commands:
+      - echo "Regula validation completed on `date`"
 BUILDSPEC
   }
   tags = merge(
