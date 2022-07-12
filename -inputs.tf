@@ -50,6 +50,18 @@ variable "cb_plan_timeout" {
   description = "Maximum time in minutes to wait while generating terraform plan before killing the build."
 }
 
+variable "cb_validate_timeout" {
+  type        = number
+  default     = 5
+  description = "Maximum time in minutes to wait while testing the plan with Regula before killing the build."
+}
+
+variable "cb_regula_timeout" {
+  type        = number
+  default     = 5
+  description = "Maximum time in minutes to wait while testing the plan with Regula before killing the build."
+}
+
 variable "cb_tf_version" {
   type        = string
   description = "Version of terraform to download and install. Must match version scheme used for URL creation on terraform site."
