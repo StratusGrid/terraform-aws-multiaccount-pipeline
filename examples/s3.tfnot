@@ -1,6 +1,6 @@
 module "terraform_pipeline" {
   source  = "StratusGrid/multiaccount-pipeline/aws"
-  version = "~> 3.0.0"
+  version = "~> #Relevant Version"
 
   create                             = true
   name                               = "${var.name_prefix}-utils"
@@ -10,26 +10,28 @@ module "terraform_pipeline" {
   cb_env_type                        = "LINUX_CONTAINER"
   cb_tf_version                      = var.terraform_version
   cb_env_name                        = var.env_name
+  
+  # This is part of an or statement of code star or s3, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  cp_resource_bucket_arn             = "arn:aws:s3:::bucket_name"
+  cp_resource_bucket_name            = "bucket_name"
+  cp_resource_bucket_key_name        = "codedump.zip" #See here for more data/examples https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html#action-requirements
+  cp_source_poll_for_changes         = true
+
+  # This is part of an or statement of code star or s3, this section is meant for if your artifacts are in GIT and not local. Use whitespace to emulate nulls, they must still be defined.
   cp_source_owner                    = "myorg" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
   cp_source_repo                     = "myrepo" # Repository Name
   cp_source_branch                   = "main" #Branch
   cb_env_image_pull_credentials_type = "CODEBUILD"
-  cp_source_codestar_connection_arn  = aws_codestarconnections_connection.codestar_connection_name.arn
+  cp_source_codestar_connection_arn  = ""
   source_control                     = "GitHub" #GitHub or BitBucket
-  
-  //This is part of an or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
-  cp_resource_bucket_arn             = ""
-  cp_resource_bucket_name            = ""
-  cp_resource_bucket_key_name        = ""
-  cp_source_poll_for_changes         = true
 
-  //This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
+  # This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
   slack_notification_for_approval    = true
   slack_workspace_id                 = ""
   slack_channel_id                   = ""
   
-  //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
-  //We make an assumption that the environment name matches the environment name in the TF init and apply directories.
+  # Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
+  # We make an assumption that the environment name matches the environment name in the TF init and apply directories.
   cb_accounts_map = {
     "dev" = {
       account_id = "0012345678901"

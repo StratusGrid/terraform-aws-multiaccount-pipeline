@@ -9,7 +9,7 @@
 
 ## Cross-Account Role Assumption
 
-In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume.  Thus, you should create an IAM role in each account with the same name and [restricted ADMIN rights](https://github.com/StratusGrid/terraform-aws-iam-group-restricted-admin), establish trust relationships to allow the CICD account to assume that role, and then provide the CodeBuild execution roles with STS Assume role rights for that role. This role's name is defined in the cb_accounts_map map parameter. The listed role works assuming you remove the sts:AssumeRole deny.
+In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume.  Thus, you should create an IAM role in each account and the IAM role name must be specified in the map and [restricted ADMIN rights](https://github.com/StratusGrid/terraform-aws-iam-group-restricted-admin), establish trust relationships to allow the CICD account to assume that role, and then provide the CodeBuild execution roles with STS Assume role rights for that role. This role's name is defined in the cb_accounts_map map parameter. The listed role works assuming you remove the sts:AssumeRole deny.
 
 An example policy to this is located [here](IAM-POLICY.md).
 
@@ -21,6 +21,13 @@ This module comes with a native AWS Chatbot integration hook, to enable this fol
 3. Navigate to the AWS Chatbot Service in the AWS Console and authorize the Slack Workspace.
 4. It may fail to deploy the first time due to an underlying AWS config replication, if it does wait up to 15 minutes as the error message states.
 
+## Notes
+- This module assumes that the Terraform state file is located in the account that you will be acting in. It has NOT been tested with cross account state file
+- This module is designed to work from a tooling account and authenticate to destination accounts via cross account IAM roles. In theory it could run from a single account with another role. This has yet to be tested.
+- This module can pull in code from either a code star connection or via an s3 artifact dump.
+- If using GIT as a source a code star connection is required, when creating the code start connection any account can auth to the provider and it will create a global token not linked to the named user.
+- If using S3 as a source the bucket must have versioning enabled
+
 ---
 
 ## Example with Git Source
@@ -28,7 +35,7 @@ This module comes with a native AWS Chatbot integration hook, to enable this fol
 ```hcl
 module "terraform_pipeline" {
   source  = "StratusGrid/multiaccount-pipeline/aws"
-  version = "~> 3.0.0"
+  version = "~> #Relevant Version"
 
   create                             = true
   name                               = "${var.name_prefix}-utils"
@@ -38,6 +45,8 @@ module "terraform_pipeline" {
   cb_env_type                        = "LINUX_CONTAINER"
   cb_tf_version                      = var.terraform_version
   cb_env_name                        = var.env_name
+  
+  # This is part of an or statement of code star or s3, this section is meant for if your artifacts are GIT and not local. Use whitespace to emulate nulls, they must still be defined.
   cp_source_owner                    = "myorg" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
   cp_source_repo                     = "myrepo" # Repository Name
   cp_source_branch                   = "main" #Branch
@@ -45,19 +54,174 @@ module "terraform_pipeline" {
   cp_source_codestar_connection_arn  = aws_codestarconnections_connection.codestar_connection_name.arn
   source_control                     = "GitHub" #GitHub or BitBucket
   
-  //This is part of an or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  # This is part of an or statement of code star or s3, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
   cp_resource_bucket_arn             = ""
   cp_resource_bucket_name            = ""
   cp_resource_bucket_key_name        = ""
   cp_source_poll_for_changes         = true
 
-  //This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
+  # This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
   slack_notification_for_approval    = true
   slack_workspace_id                 = ""
   slack_channel_id                   = ""
   
-  //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
-  //We make an assumption that the environment name matches the environment name in the TF init and apply directories.
+  # Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
+  # We make an assumption that the environment name matches the environment name in the TF init and apply directories.
+  cb_accounts_map = {
+    "dev" = {
+      account_id = "0012345678901"
+      iam_role   = "iam-cicd"
+      manual_approval = false
+      order = 1
+    }
+    "stg" = {
+      account_id = "123456789012"
+      iam_role   = "iam-cicd"
+      manual_approval = true
+      order = 2
+    }
+    "prd" = {
+      account_id = "234567890123"
+      iam_role   = "iam-cicd"
+      manual_approval = true
+      order = 3
+    }
+  }
+}
+
+locals {
+  terraform_pipeline_codebuild_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::${var.backend_name}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::${var.backend_name}/${var.name_prefix}-infra-utils-${var.env_name}.tfstate"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:${data.aws_caller_identity.current.account_id}:table/${var.backend_name}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
+      ],
+      "Resource": "${var.tf_kms_key_id}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "${module.terraform_pipeline.codepipeline_resources_bucket_arn}",
+        "${module.terraform_pipeline.codepipeline_resources_bucket_arn}/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Describe*",
+        "kms:Get*",
+        "kms:List*",
+        "iam:*",
+        "codepipeline:*",
+        "codebuild:*",
+        "codedeploy:*",
+        "s3:CreateBucket",
+        "s3:List*",
+        "s3:Get*",
+        "sts:AssumeRole"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:Describe*",
+        "secretsmanager:Get*",
+        "secretsmanager:List*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+POLICY
+}
+```
+
+
+## Example with S3 Source
+
+```hcl
+module "terraform_pipeline" {
+  source  = "StratusGrid/multiaccount-pipeline/aws"
+  version = "~> #Relevant Version"
+
+  create                             = true
+  name                               = "${var.name_prefix}-utils"
+  codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
+  cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
+  cb_env_image                       = "aws/codebuild/standard:5.0"
+  cb_env_type                        = "LINUX_CONTAINER"
+  cb_tf_version                      = var.terraform_version
+  cb_env_name                        = var.env_name
+  
+  # This is part of an or statement of code star or s3, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  cp_resource_bucket_arn             = "arn:aws:s3:::bucket_name"
+  cp_resource_bucket_name            = "bucket_name"
+  cp_resource_bucket_key_name        = "codedump.zip" #See here for more data/examples https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html#action-requirements
+  cp_source_poll_for_changes         = true
+
+  # This is part of an or statement of code star or s3, this section is meant for if your artifacts are in GIT and not local. Use whitespace to emulate nulls, they must still be defined.
+  cp_source_owner                    = "myorg" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
+  cp_source_repo                     = "myrepo" # Repository Name
+  cp_source_branch                   = "main" #Branch
+  cb_env_image_pull_credentials_type = "CODEBUILD"
+  cp_source_codestar_connection_arn  = ""
+  source_control                     = "GitHub" #GitHub or BitBucket
+
+  # This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
+  slack_notification_for_approval    = true
+  slack_workspace_id                 = ""
+  slack_channel_id                   = ""
+  
+  # Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
+  # We make an assumption that the environment name matches the environment name in the TF init and apply directories.
   cb_accounts_map = {
     "dev" = {
       account_id = "0012345678901"
