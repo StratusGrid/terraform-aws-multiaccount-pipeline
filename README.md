@@ -9,7 +9,15 @@
 
 ## Cross-Account Role Assumption
 
-In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume.  Thus, you should create an IAM role in each account and the IAM role name must be specified in the map and [restricted ADMIN rights](https://github.com/StratusGrid/terraform-aws-iam-group-restricted-admin), establish trust relationships to allow the CICD account to assume that role, and then provide the CodeBuild execution roles with STS Assume role rights for that role. This role's name is defined in the cb_accounts_map map parameter. The listed role works assuming you remove the sts:AssumeRole deny.
+In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume. Thus, you should:
+
+- Create an IAM role in each account
+- The IAM role name must be specified in the `cb_accounts_map` input
+- The IAM role must have an attached policy with appropriate permissions (consider using [restricted-admin](https://github.com/StratusGrid/terraform-aws-iam-group-restricted-admin) rights)
+- Establish trust relationships to allow the CICD account to assume that role
+- Provide the CodeBuild execution roles with STS Assume role rights for that role
+
+This role's name is defined in the `cb_accounts_map` input. The listed role works assuming you remove the sts:AssumeRole deny.
 
 An example policy to this is located [here](IAM-POLICY.md).
 
@@ -22,11 +30,11 @@ This module comes with a native AWS Chatbot integration hook, to enable this fol
 4. It may fail to deploy the first time due to an underlying AWS config replication, if it does wait up to 15 minutes as the error message states.
 
 ## Notes
-- This module assumes that the Terraform state file is located in the account that you will be acting in. It has NOT been tested with cross account state file
-- This module is designed to work from a tooling account and authenticate to destination accounts via cross account IAM roles. In theory it could run from a single account with another role. This has yet to be tested.
-- This module can pull in code from either a code star connection or via an s3 artifact dump.
-- If using GIT as a source a code star connection is required, when creating the code start connection any account can auth to the provider and it will create a global token not linked to the named user.
-- If using S3 as a source the bucket must have versioning enabled
+- This module assumes that the Terraform state file is located in the account that you will be acting in. It has NOT been tested with cross account state file.
+- This module is designed to work from a tooling account and access destination accounts with the rights granted to it by cross-account IAM roles. In theory, it could run from a single account with another role. This has NOT been tested.
+- This module can pull in code via either an AWS CodeStar connection or an artifact in an S3 bucket.
+- If using Git as a source, an AWS CodeStar connection is required. When creating the AWS CodeStar connection, any account can authenticate to the provider. It will create a global token and not one linked to the named user.
+- If using S3 as a source, the bucket must have versioning enabled.
 
 ---
 
@@ -46,7 +54,7 @@ module "terraform_pipeline" {
   cb_tf_version                      = var.terraform_version
   cb_env_name                        = var.env_name
   
-  # This is part of an or statement of code star or s3, this section is meant for if your artifacts are GIT and not local. Use whitespace to emulate nulls, they must still be defined.
+  # These inputs should be defined if your source artifacts are in a GitHub or BitBucket Git repository. Use an empty string to emulate any null values; they must still be defined.
   cp_source_owner                    = "myorg" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
   cp_source_repo                     = "myrepo" # Repository Name
   cp_source_branch                   = "main" #Branch
@@ -65,8 +73,8 @@ module "terraform_pipeline" {
   slack_workspace_id                 = ""
   slack_channel_id                   = ""
   
-  # Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
-  # We make an assumption that the environment name matches the environment name in the TF init and apply directories.
+  # List each environment here. Order must be specified because Terraform will automatically sort the map alphabetically.
+  # Environment names used in this map must match the filename (without extension) of the relevant .tfvars file in tf-init and tf-apply subdirectories.
   cb_accounts_map = {
     "dev" = {
       account_id = "0012345678901"
@@ -201,27 +209,27 @@ module "terraform_pipeline" {
   cb_tf_version                      = var.terraform_version
   cb_env_name                        = var.env_name
   
-  # This is part of an or statement of code star or s3, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  # These inputs should be defined if your source artifacts are in an S3 bucket. Use an empty string to emulate any null values; they must still be defined.
   cp_resource_bucket_arn             = "arn:aws:s3:::bucket_name"
   cp_resource_bucket_name            = "bucket_name"
   cp_resource_bucket_key_name        = "codedump.zip" #See here for more data/examples https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html#action-requirements
   cp_source_poll_for_changes         = true
 
   # This is part of an or statement of code star or s3, this section is meant for if your artifacts are in GIT and not local. Use whitespace to emulate nulls, they must still be defined.
-  cp_source_owner                    = "myorg" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
-  cp_source_repo                     = "myrepo" # Repository Name
-  cp_source_branch                   = "main" #Branch
-  cb_env_image_pull_credentials_type = "CODEBUILD"
+  cp_source_owner                    = "" # (GitHub/BitBucket Org) - (Organization Name/Project Name)
+  cp_source_repo                     = "" # Repository Name
+  cp_source_branch                   = "" #Branch
+  cb_env_image_pull_credentials_type = ""
   cp_source_codestar_connection_arn  = ""
-  source_control                     = "GitHub" #GitHub or BitBucket
+  source_control                     = "" #GitHub or BitBucket
 
   # This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
   slack_notification_for_approval    = true
   slack_workspace_id                 = ""
   slack_channel_id                   = ""
   
-  # Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
-  # We make an assumption that the environment name matches the environment name in the TF init and apply directories.
+  # List each environment here. Order must be specified because Terraform will automatically sort the map alphabetically.
+  # Environment names used in this map must match the filename (without extension) of the relevant .tfvars file in tf-init and tf-apply subdirectories.
   cb_accounts_map = {
     "dev" = {
       account_id = "0012345678901"
