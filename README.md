@@ -47,7 +47,7 @@ module "terraform_pipeline" {
 
   create                             = true
   name                               = "${var.name_prefix}-utils"
-  codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
+  codebuild_iam_policy               = aws_iam_policy_document.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
   cb_env_image                       = "aws/codebuild/standard:5.0"
   cb_env_type                        = "LINUX_CONTAINER"
@@ -97,98 +97,124 @@ module "terraform_pipeline" {
   }
 }
 
-locals {
-  terraform_pipeline_codebuild_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Resource": [
-        "*"
-      ],
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::${var.backend_name}"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:PutObject"
-      ],
-      "Resource": "arn:aws:s3:::${var.backend_name}/${var.name_prefix}-infra-utils-${var.env_name}.tfstate"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:DeleteItem"
-      ],
-      "Resource": "arn:aws:dynamodb:us-east-1:${data.aws_caller_identity.current.account_id}:table/${var.backend_name}"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "kms:Decrypt",
-        "kms:GenerateDataKey"
-      ],
-      "Resource": "${var.tf_kms_key_id}"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:ListBucket",
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject"
-      ],
-      "Resource": [
-        "${module.terraform_pipeline.codepipeline_resources_bucket_arn}",
-        "${module.terraform_pipeline.codepipeline_resources_bucket_arn}/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "kms:Describe*",
-        "kms:Get*",
-        "kms:List*",
-        "iam:*",
-        "codepipeline:*",
-        "codebuild:*",
-        "codedeploy:*",
-        "s3:CreateBucket",
-        "s3:List*",
-        "s3:Get*",
-        "sts:AssumeRole"
-      ],
-      "Resource": [
-        "*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "secretsmanager:Describe*",
-        "secretsmanager:Get*",
-        "secretsmanager:List*"
-      ],
-      "Resource": [
-        "*"
-      ]
-    }
-  ]
-}
-POLICY
+data "aws_iam_policy_document" "terraform_pipeline_codebuild_policy" {
+  statement {
+    sid = "LogStreams"
+
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+
+    resources = [
+      "*",
+    ]
+  }
+
+  statement {
+    sid = "ListBucket"
+
+    actions = [
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      "arn:aws:s3:::${var.backend_name}"
+    ]
+  }
+
+  statement {
+    sid = "ObjectsTFState"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${var.backend_name}/${var.name_prefix}-infra-utils-${var.env_name}.tfstate"
+    ]
+  }
+
+  statement {
+    sid = "DynamoDB"
+
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem"
+    ]
+
+    resources = [
+      "arn:aws:dynamodb:us-east-1:${data.aws_caller_identity.current.account_id}:table/${var.backend_name}"
+    ]
+  }
+
+  statement {
+    sid = "KMS"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey"
+    ]
+
+    resources = [
+      var.tf_kms_key_id
+    ]
+  }
+
+  statement {
+    sid = "S3CodePipelineObjects"
+
+    actions = [
+      "s3:ListBucket",
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ]
+
+    resources = [
+      "${module.terraform_pipeline.codepipeline_resources_bucket_arn}",
+      "${module.terraform_pipeline.codepipeline_resources_bucket_arn}/*"
+    ]
+  }
+
+  statement {
+    sid = "MajorityActions"
+
+    actions = [
+      "kms:Describe*",
+      "kms:Get*",
+      "kms:List*",
+      "iam:*",
+      "codepipeline:*",
+      "codebuild:*",
+      "codedeploy:*",
+      "s3:CreateBucket",
+      "s3:List*",
+      "s3:Get*",
+      "sts:AssumeRole"
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+
+  statement {
+    sid = "SecretsManagers"
+
+    actions = [
+      "secretsmanager:Describe*",
+      "secretsmanager:Get*",
+      "secretsmanager:List*"
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
 }
 ```
 
@@ -202,7 +228,7 @@ module "terraform_pipeline" {
 
   create                             = true
   name                               = "${var.name_prefix}-utils"
-  codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
+  codebuild_iam_policy               = aws_iam_policy_document.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
   cb_env_image                       = "aws/codebuild/standard:5.0"
   cb_env_type                        = "LINUX_CONTAINER"

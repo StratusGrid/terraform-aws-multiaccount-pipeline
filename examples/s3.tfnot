@@ -4,7 +4,7 @@ module "terraform_pipeline" {
 
   create                             = true
   name                               = "${var.name_prefix}-utils"
-  codebuild_iam_policy               = local.terraform_pipeline_codebuild_policy
+  codebuild_iam_policy               = aws_iam_policy_document.terraform_pipeline_codebuild_policy
   cb_env_compute_type                = "BUILD_GENERAL1_SMALL"
   cb_env_image                       = "aws/codebuild/standard:5.0"
   cb_env_type                        = "LINUX_CONTAINER"
