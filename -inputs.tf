@@ -55,6 +55,24 @@ variable "cb_tf_version" {
   description = "Version of terraform to download and install. Must match version scheme used for URL creation on terraform site."
 }
 
+variable "cb_gh_app_id" {
+  type        = string
+  description = "ID of the GitHub App."
+  default     = ""
+}
+
+variable "cb_gh_app_installation_id" {
+  type        = string
+  description = "Installation ID of the GitHub App."
+  default     = ""
+}
+
+variable "cb_gh_private_key_arn" {
+  type        = string
+  description = "Secret's ARN containing the binary of the private key for the GitHub App."
+  default     = ""
+}
+
 variable "codebuild_iam_policy" {
   type        = string
   description = "JSON string defining the initial/base codebuild IAM policy (must be passed in from caller)."
