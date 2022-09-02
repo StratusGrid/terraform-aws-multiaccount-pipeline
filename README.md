@@ -44,20 +44,26 @@ module "terraform_pipeline" {
   cb_env_image_pull_credentials_type = "CODEBUILD"
   cp_source_codestar_connection_arn  = aws_codestarconnections_connection.codestar_connection_name.arn
   source_control                     = "GitHub" #GitHub or BitBucket
+
+  # This is used to authenticate against GitHub using a GitHub App. Git will be configured with a temporal token from the GitHub App.
+  # https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps
+  cb_gh_app_id                       = var.cb_gh_app_id
+  cb_gh_app_installation_id          = var.cb_gh_app_installation_id
+  cb_gh_private_key_arn              = aws_secretsmanager_secret.github_app.id
   
-  //This is part of an or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
+  # This is part of an or statement, this section is meant for if your artifacts are local and not in GIT. Use whitespace to emulate nulls, they must still be defined.
   cp_resource_bucket_arn             = ""
   cp_resource_bucket_name            = ""
   cp_resource_bucket_key_name        = ""
   cp_source_poll_for_changes         = true
 
-  //This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
+  # This is used to enable slack notifications for codebuild statuses as well as codepipeline manual approval via AWS chatbot service 
   slack_notification_for_approval    = true
   slack_workspace_id                 = ""
   slack_channel_id                   = ""
   
-  //Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
-  //We make an assumption that the environment name matches the environment name in the TF init and apply directories.
+  # Each environment but be in the order, we prefix this list since the map will sort alphabetically and we can not change that.
+  # We make an assumption that the environment name matches the environment name in the TF init and apply directories.
   cb_accounts_map = {
     "dev" = {
       account_id = "0012345678901"
