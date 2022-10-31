@@ -123,7 +123,6 @@ resource "aws_sns_topic_policy" "access_from_chatbot" {
 
 ################## Chatbot Service #####################################
 locals {
-  chatbot_logging_level      = "ERROR"
   chatbot_slack_workspace_id = var.slack_workspace_id
 }
 

@@ -1,5 +1,8 @@
 #this bucket is used to store config files, etc. which are used for processing.
+#tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "pipeline_resources_bucket" {
+  #ts:skip=AC_AWS_0207 Temp resource bucket, no KMS needed
+  #ts:skip=AC_AWS_0214 Temp resource bucket, no versioning needed
   bucket = "${var.name}-pipeline-resources"
 
   lifecycle {
@@ -9,7 +12,9 @@ resource "aws_s3_bucket" "pipeline_resources_bucket" {
   tags = merge(local.common_tags, {})
 }
 
+#tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "pipeline_resources_bucket" {
+  #ts:skip=AWS.S3Bucket.EncryptionandKeyManagement.High.0405 No KMS needed here
   bucket = aws_s3_bucket.pipeline_resources_bucket.id
 
   rule {

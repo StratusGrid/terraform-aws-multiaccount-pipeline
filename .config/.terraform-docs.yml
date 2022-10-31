@@ -15,7 +15,15 @@ content: |-
 
   ## Cross-Account Role Assumption
 
-  In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume.  Thus, you should create an IAM role in each account with the same name and [restricted ADMIN rights](https://github.com/StratusGrid/terraform-aws-iam-group-restricted-admin), establish trust relationships to allow the CICD account to assume that role, and then provide the CodeBuild execution roles with STS Assume role rights for that role. This role's name is defined in the cb_accounts_map map parameter. The listed role works assuming you remove the sts:AssumeRole deny.
+  In order for the CodePipeline's CodeBuild stages to properly function in each account/environment, an IAM role must be created in each account which the CodeBuilds can assume. Thus, you should:
+
+  - Create an IAM role in each account
+  - The IAM role name must be specified in the `cb_accounts_map` input
+  - The IAM role must have an attached policy with appropriate permissions (consider using [restricted-admin](https://github.com/StratusGrid/terraform-aws-iam-group-restricted-admin) rights)
+  - Establish trust relationships to allow the CICD account to assume that role
+  - Provide the CodeBuild execution roles with STS Assume role rights for that role
+  
+  This role's name is defined in the `cb_accounts_map` input. The listed role works assuming you remove the sts:AssumeRole deny.
 
   An example policy to this is located [here](IAM-POLICY.md).
 
@@ -27,12 +35,26 @@ content: |-
   3. Navigate to the AWS Chatbot Service in the AWS Console and authorize the Slack Workspace.
   4. It may fail to deploy the first time due to an underlying AWS config replication, if it does wait up to 15 minutes as the error message states.
 
+  ## Notes
+  - This module assumes that the Terraform state file is located in the account that you will be acting in. It has NOT been tested with cross account state file.
+  - This module is designed to work from a tooling account and access destination accounts with the rights granted to it by cross-account IAM roles. In theory, it could run from a single account with another role. This has NOT been tested.
+  - This module can pull in code via either an AWS CodeStar connection or an artifact in an S3 bucket.
+  - If using Git as a source, an AWS CodeStar connection is required. When creating the AWS CodeStar connection, any account can authenticate to the provider. It will create a global token and not one linked to the named user.
+  - If using S3 as a source, the bucket must have versioning enabled.
+
   ---
 
   ## Example with Git Source
 
   ```hcl
-  {{ include "examples/git.tf" }}
+  {{ include "examples/git.tfnot" }}
+  ```
+
+
+  ## Example with S3 Source
+
+  ```hcl
+  {{ include "examples/s3.tfnot" }}
   ```
 
   ---

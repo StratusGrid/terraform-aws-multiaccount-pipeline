@@ -127,8 +127,8 @@ variable "cp_source_repo" {
 }
 
 variable "create" {
-  type        = string
-  default     = ""
+  type        = bool
+  default     = true
   description = "Conditionally create resources. Affects nearly all resources."
 }
 
