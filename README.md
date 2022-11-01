@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-# Terraform Multiaccount Pipeline
+# terraform-aws-multiaccount-pipeline
 
 [StratusGrid/terraform-aws-multiaccount-pipeline](https://github.com/StratusGrid/terraform-aws-multiaccount-pipeline)
 
@@ -497,5 +497,5 @@ provider_type = "GitHub"
 - Wesley Kirkland [wesleykirklandsg](https://github.com/wesleykirklandsg)
 - Max Rahimi [maxr-sg](https://github.com/maxr-sg)
 
-Note, manual changes to the README will be overwritten when the documentation is updated. To update the documentation, run `terraform-docs -c .config/.terraform-docs.yml .`
+<span style="color:red">Note:</span> Manual changes to the README will be overwritten when the documentation is updated. To update the documentation, run `terraform-docs -c .config/.terraform-docs.yml .`
 <!-- END_TF_DOCS -->

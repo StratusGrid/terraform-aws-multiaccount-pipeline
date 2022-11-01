@@ -3,7 +3,7 @@ resource "aws_codebuild_project" "terraform_plan" {
   count         = var.create ? 1 : 0
   description   = "terraform codebuild plan project"
   build_timeout = var.cb_plan_timeout
-  service_role  = join("", aws_iam_role.codebuild_terraform.*.arn)
+  service_role  = join("", aws_iam_role.codebuild_terraform[*].arn)
 
   environment {
     compute_type                = var.cb_env_compute_type
@@ -99,13 +99,12 @@ BUILDSPEC
   )
 }
 
-
 resource "aws_codebuild_project" "terraform_apply" {
   name          = "${var.name}-tf-apply"
   count         = var.create ? 1 : 0
   description   = "terraform codebuild apply project"
   build_timeout = var.cb_apply_timeout
-  service_role  = join("", aws_iam_role.codebuild_terraform.*.arn)
+  service_role  = join("", aws_iam_role.codebuild_terraform[*].arn)
 
   environment {
     compute_type                = var.cb_env_compute_type
