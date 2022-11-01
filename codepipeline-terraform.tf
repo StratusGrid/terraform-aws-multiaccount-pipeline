@@ -5,7 +5,7 @@ data "aws_kms_alias" "s3" {
 resource "aws_codepipeline" "codepipeline_terraform" {
   count    = var.create ? 1 : 0
   name     = "${var.name}-cp-terraform"
-  role_arn = join("", aws_iam_role.codepipeline_role_terraform.*.arn)
+  role_arn = join("", aws_iam_role.codepipeline_role_terraform[*].arn)
 
   artifact_store {
     location = aws_s3_bucket.pipeline_resources_bucket.bucket
@@ -80,13 +80,13 @@ resource "aws_codepipeline" "codepipeline_terraform" {
         run_order        = 1
 
         configuration = {
-          ProjectName = join("", aws_codebuild_project.terraform_plan.*.name)
+          ProjectName = join("", aws_codebuild_project.terraform_plan[*].name)
           EnvironmentVariables = jsonencode(
             [
               {
                 name  = "TERRAFORM_ENVIRONMENT_NAME"
                 type  = "PLAINTEXT"
-                value = "${stage.value}"
+                value = stage.value
               },
               {
                 name  = "TERRAFORM_ASSUME_ROLE"
@@ -148,7 +148,7 @@ resource "aws_codepipeline" "codepipeline_terraform" {
         version         = "1"
         run_order       = 3
         configuration = {
-          ProjectName   = join("", aws_codebuild_project.terraform_apply.*.name)
+          ProjectName   = join("", aws_codebuild_project.terraform_apply[*].name)
           PrimarySource = "${stage.value}_plan_output"
           EnvironmentVariables = jsonencode(
             [

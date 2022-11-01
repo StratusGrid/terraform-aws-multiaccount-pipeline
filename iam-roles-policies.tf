@@ -22,11 +22,9 @@ EOF
 resource "aws_iam_role_policy" "codebuild_policy_terraform" {
   name   = "${var.name}-build"
   count  = var.create ? 1 : 0
-  role   = join("", aws_iam_role.codebuild_terraform.*.id)
+  role   = join("", aws_iam_role.codebuild_terraform[*].id)
   policy = var.codebuild_iam_policy
 }
-
-
 
 ### CODEPIPELINE TERRAFORM IAM ROLE ###
 resource "aws_iam_role" "codepipeline_role_terraform" {
@@ -163,7 +161,7 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
 
 resource "aws_iam_role_policy" "codepipeline_policy_terraform" {
   name   = "${var.name}-codepipeline-policy"
-  role   = join("", aws_iam_role.codepipeline_role_terraform.*.id)
+  role   = join("", aws_iam_role.codepipeline_role_terraform[*].id)
   count  = var.create ? 1 : 0
   policy = data.aws_iam_policy_document.codepipeline_policy_terraform.json
 }
