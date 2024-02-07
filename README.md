@@ -405,8 +405,8 @@ data "aws_iam_policy_document" "terraform_pipeline_codebuild_policy" {
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.1 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.12 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | > 1.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.0 |
 
 ## Resources
 
@@ -485,9 +485,9 @@ A Codestar connection will be created in the "pending" state and must then be ma
 ## Example CodeStar Connection resource
 
 ```hcl
-resource "aws_codestarconnections_connection" "test_repo" {
-name = "test-cicd-connection"
-provider_type = "GitHub"
+resource "aws_codestarconnections_connection" "test_repo" { 
+  name = "test-cicd-connection" 
+  provider_type = "GitHub"
 }
 ```
 
