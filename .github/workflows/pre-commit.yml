@@ -5,4 +5,4 @@ on:
 
 jobs:
   build:
-    uses: StratusGrid/workflow-config/.github/workflows/pre-commit.yml@gadd/go-work
+    uses: StratusGrid/workflow-config/.github/workflows/pre-commit.yml@add/go-work
