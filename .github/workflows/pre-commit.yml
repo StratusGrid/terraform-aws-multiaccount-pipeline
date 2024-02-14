@@ -5,4 +5,4 @@ on:
 
 jobs:
   build:
-    uses: StratusGrid/workflow-config/.github/workflows/pre-commit.yml@fix/terraform-docs
+    uses: StratusGrid/workflow-config/.github/workflows/pre-commit.yml@v1.1.0
