@@ -1,3 +1,5 @@
+header-from: ./.config/header.md
+
 version: ""
 
 formatter: markdown table
@@ -5,6 +7,8 @@ formatter: markdown table
 name: terraform-aws-multiaccount-pipeline
 
 content: |-
+  {{ .Header }}
+
   # terraform-aws-multiaccount-pipeline
 
   [StratusGrid/terraform-aws-multiaccount-pipeline](https://github.com/StratusGrid/terraform-aws-multiaccount-pipeline)
@@ -91,6 +95,7 @@ content: |-
 
 sections:
   show:
+    - header
     - resources
     - inputs
     - outputs
