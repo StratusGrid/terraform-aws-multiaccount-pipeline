@@ -104,9 +104,12 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
       "codebuild:StartBuild"
     ]
 
-    resources = ["*"]
+    resources = [
+      var.cb_accounts_map[*].account_id,
+    ]
   }
 
+  #trivy:ignore:AVD-AWS-0057
   statement {
     sid = "KMSAccess"
 
@@ -154,7 +157,9 @@ data "aws_iam_policy_document" "codepipeline_policy_terraform" {
       "codedeploy:RegisterApplicationRevision"
     ]
 
-    resources = ["*"]
+    resources = [
+      var.cb_accounts_map[*].account_id,
+    ]
   }
 
 }
